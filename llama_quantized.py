@@ -6,6 +6,7 @@ from transformers import AutoConfig, AutoTokenizer, AutoModelForCausalLM, LlamaT
 import transformers
 from gptq.utils import find_layers
 from gptq import quant
+import sys
 
 class LLaMAQuantized(Transformers):
     """ A HuggingFace transformers version of the LLaMA language model with Guidance support.
@@ -53,7 +54,7 @@ def load_quantized(model_name, wbits, groupsize, model_dir):
     path_to_model = Path(f'{model_dir}/{model_name}')
     pt_path = find_quantized_model_file(model_dir, model_name, wbits, groupsize)
     if not pt_path:
-        exit()
+        sys.exit()
     else:
         print(f"Found the following quantized model: {pt_path}")
 
