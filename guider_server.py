@@ -62,7 +62,7 @@ class MyHandler(BaseHTTPRequestHandler):
         template: str = data['template']
         parameters: dict = data['parameters']
 
-        g = guidance(template)
+        g = guidance(template, silent=False)
 
         print('getting model output...')
         model_output = g(**parameters)
