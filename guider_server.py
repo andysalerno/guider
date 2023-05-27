@@ -4,10 +4,12 @@ from llama_quantized import LLaMAQuantized
 from sentence_transformers import SentenceTransformer
 import json
 
+guidance.llms.Transformers.cache.clear()
 guidance.llm = LLaMAQuantized(model_dir='models', model='Wizard-Vicuna-13B-Uncensored-GPTQ')
+print(f'Token healing enabled: {guidance.llm.token_healing}')
 
 EMBEDDING_MODEL_NAME = "all-mpnet-base-v2"
-embedding_model = SentenceTransformer(EMBEDDING_MODEL_NAME, device="cpu")
+embedding_model = SentenceTransformer(EMBEDDING_MODEL_NAME)
 
 class MyHandler(BaseHTTPRequestHandler):
 

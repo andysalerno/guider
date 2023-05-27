@@ -26,7 +26,7 @@ class LLaMAQuantized(Transformers):
             tokenizer_path = f'{model_dir}/{model_name}/'
             print(f'Loading tokenizer from: {tokenizer_path}')
 
-            tokenizer = LlamaTokenizer.from_pretrained(Path(tokenizer_path), clean_up_tokenization_spaces=True)
+            tokenizer = LlamaTokenizer.from_pretrained(Path(tokenizer_path))
 
         super().__init__(model, tokenizer=tokenizer, device_map=device_map, **kwargs)
 
