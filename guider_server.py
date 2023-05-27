@@ -53,6 +53,8 @@ class MyHandler(BaseHTTPRequestHandler):
 
     def handle_chat(self):
         print('chat requested')
+        guidance.llms.Transformers.cache.clear()
+
         content_length = int(self.headers['Content-Length']) # Get the size of data
         post_data = self.rfile.read(content_length).decode('utf-8')
         data = json.loads(post_data)
