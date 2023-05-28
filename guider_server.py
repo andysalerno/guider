@@ -114,7 +114,7 @@ class MyHandler(BaseHTTPRequestHandler):
 
         output_skips = {}
 
-        skip = 0
+        skip_text = 0
 
         print('getting model output...')
         for output in g(stream=True, **parameters):
@@ -127,11 +127,11 @@ class MyHandler(BaseHTTPRequestHandler):
                     output_skips[key] = len(val)
             
             response = {
-                'text': output.text[skip:],
+                'text': output.text[skip_text:],
                 'variables': filtered_variables
             }
 
-            skip = len(output.text)
+            skip_text = len(output.text)
 
             response_str = f'data: {json.dumps(response)}\n\n'
             print(f'response str:\n{response_str}')
