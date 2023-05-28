@@ -19,7 +19,8 @@ class MyHandler(BaseHTTPRequestHandler):
         if self.path == '/embeddings':
             self.handle_embeddings()
         elif self.path == '/chat':
-            self.handle_chat()
+            # self.handle_chat()
+            self.handle_chat_streaming()
 
     def handle_embeddings(self):
         print('embeddings requested')
@@ -89,6 +90,43 @@ class MyHandler(BaseHTTPRequestHandler):
         self.send_header('Content-type', 'application/json')
         self.end_headers()
         self.wfile.write(json.dumps(response).encode('utf-8'))
+
+    def handle_chat_streaming(self):
+        print('chat requested')
+        guidance.llms.Transformers.cache.clear()
+
+        content_length = int(self.headers['Content-Length']) # Get the size of data
+        post_data = self.rfile.read(content_length).decode('utf-8')
+        data = json.loads(post_data)
+
+        print(f"saw request body: {data}")
+
+        self.send_response(200)
+        self.send_header('Content-Type', 'text/event-stream')
+        self.send_header('Cache-Control', 'no-cache')
+        self.end_headers()
+
+        template: str = data['template']
+        parameters: dict = data['parameters']
+
+        g = guidance(template, silent=False)
+
+        print('getting model output...')
+        for output in g(stream=True, **parameters):
+            print(f'got output: {output}')
+            filtered_variables = dict()
+
+            for key, val in output.variables().items():
+                if key not in parameters.keys() and key != 'llm':
+                    filtered_variables[key] = val
+            
+            response = {
+                'text': output.text,
+                'variables': filtered_variables
+            }
+            self.wfile.write(json.dumps(response).encode('utf-8'))
+            pass
+        print('done.')
 
 
 def run(server_class=HTTPServer, handler_class=MyHandler):
