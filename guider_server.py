@@ -22,6 +22,7 @@ class MyHandler(BaseHTTPRequestHandler):
             # self.handle_chat()
             self.handle_chat_streaming()
 
+
     def handle_embeddings(self):
         print('embeddings requested')
         self.send_response(200)
@@ -124,7 +125,8 @@ class MyHandler(BaseHTTPRequestHandler):
                 'text': output.text,
                 'variables': filtered_variables
             }
-            self.wfile.write(json.dumps(response).encode('utf-8'))
+            response_str = json.dumps(response) + '\n'
+            self.wfile.write(response_str.encode('utf-8'))
             pass
         print('done.')
 
