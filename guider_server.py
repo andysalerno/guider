@@ -61,7 +61,7 @@ class MyHandler(BaseHTTPRequestHandler):
         post_data = self.rfile.read(content_length).decode('utf-8')
         data = json.loads(post_data)
 
-        print(f"saw request body: {data}")
+        # print(f"saw request body: {data}")
 
         template: str = data['template']
         parameters: dict = data['parameters']
@@ -93,14 +93,14 @@ class MyHandler(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps(response).encode('utf-8'))
 
     def handle_chat_streaming(self):
-        print('chat requested')
+        print('streaming chat requested')
         guidance.llms.Transformers.cache.clear()
 
         content_length = int(self.headers['Content-Length']) # Get the size of data
         post_data = self.rfile.read(content_length).decode('utf-8')
         data = json.loads(post_data)
 
-        print(f"saw request body: {data}")
+        # print(f"saw request body: {data}")
 
         self.send_response(200)
         self.send_header('Content-Type', 'text/event-stream')
@@ -110,25 +110,35 @@ class MyHandler(BaseHTTPRequestHandler):
         template: str = data['template']
         parameters: dict = data['parameters']
 
-        g = guidance(template, silent=False)
+        g = guidance(template, silent=True)
+
+        output_skips = {}
+
+        skip = 0
 
         print('getting model output...')
         for output in g(stream=True, **parameters):
-            print(f'got output: {output}')
             filtered_variables = dict()
 
             for key, val in output.variables().items():
                 if key not in parameters.keys() and key != 'llm':
-                    filtered_variables[key] = val
+                    skip = output_skips.get(key, 0)
+                    filtered_variables[key] = val[skip:]
+                    output_skips[key] = len(val)
             
             response = {
-                'text': output.text,
+                'text': output.text[skip:],
                 'variables': filtered_variables
             }
-            response_str = json.dumps(response) + '\n'
+
+            skip = len(output.text)
+
+            response_str = f'data: {json.dumps(response)}\n\n'
+            print(f'response str:\n{response_str}')
             self.wfile.write(response_str.encode('utf-8'))
             pass
-        print('done.')
+
+        print('done getting output from model.')
 
 
 def run(server_class=HTTPServer, handler_class=MyHandler):
