@@ -106,6 +106,8 @@ class MyHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-Type', 'text/event-stream')
         self.send_header('Cache-Control', 'no-store')
+        # self.send_header('Connection', 'keep-alive')
+        self.send_header('X-Accel-Buffering', 'no')
         self.end_headers()
 
         template: str = data['template']
