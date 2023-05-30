@@ -3,6 +3,7 @@ import guidance
 from llama_quantized import LLaMAQuantized
 from sentence_transformers import SentenceTransformer
 import json
+import sys
 
 guidance.llms.Transformers.cache.clear()
 guidance.llm = LLaMAQuantized(model_dir='models', model='Wizard-Vicuna-13B-Uncensored-GPTQ')
@@ -104,7 +105,7 @@ class MyHandler(BaseHTTPRequestHandler):
 
         self.send_response(200)
         self.send_header('Content-Type', 'text/event-stream')
-        self.send_header('Cache-Control', 'no-cache')
+        self.send_header('Cache-Control', 'no-store')
         self.end_headers()
 
         template: str = data['template']
@@ -133,10 +134,12 @@ class MyHandler(BaseHTTPRequestHandler):
 
             skip_text = len(output.text)
 
-            response_str = f'data: {json.dumps(response)}\n\n'
+            response_str = f'data: {json.dumps(response).rstrip()}\n\n'
             print(f'response str:\n{response_str}')
+            sys.stdout.flush()
+            self.wfile.write('event: streamtext\n'.encode('utf-8'))
             self.wfile.write(response_str.encode('utf-8'))
-            pass
+            self.wfile.flush()
 
         print('done getting output from model.')
 
@@ -147,5 +150,12 @@ def run(server_class=HTTPServer, handler_class=MyHandler):
     print('Starting httpd...\n')
     httpd.serve_forever()
 
+def run_threaded():
+    print('starting threaded...')
+    from threading import Thread
+    t = Thread(target=run)
+    # t.setDaemon(False)
+    t.start()
+
 if __name__ == '__main__':
-    run()
+    run_threaded()
