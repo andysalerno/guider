@@ -143,6 +143,9 @@ class MyHandler(BaseHTTPRequestHandler):
             self.wfile.write(response_str.encode('utf-8'))
             self.wfile.flush()
 
+        self.wfile.write('data: [DONE]\n\n'.encode('utf-8'))
+        self.wfile.flush()
+
         print('done getting output from model.')
 
 
