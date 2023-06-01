@@ -9,7 +9,8 @@ guidance.llms.Transformers.cache.clear()
 guidance.llm = LLaMAQuantized(model_dir='models', model='Wizard-Vicuna-13B-Uncensored-GPTQ')
 print(f'Token healing enabled: {guidance.llm.token_healing}')
 
-EMBEDDING_MODEL_NAME = "all-mpnet-base-v2"
+# EMBEDDING_MODEL_NAME = "all-mpnet-base-v2"
+EMBEDDING_MODEL_NAME = "multi-qa-MiniLM-L6-cos-v1"
 embedding_model = SentenceTransformer(EMBEDDING_MODEL_NAME)
 
 class MyHandler(BaseHTTPRequestHandler):
