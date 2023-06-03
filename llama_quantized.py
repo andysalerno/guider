@@ -11,14 +11,13 @@ import sys
 class LLaMAQuantized(Transformers):
     """ A HuggingFace transformers version of the LLaMA language model with Guidance support.
     """
-
-    cache = LLM._open_cache("_llama.diskcache")
-
-    def __init__(self, model_dir, model, tokenizer=None, device_map=None, wbits=4, groupsize=128, **kwargs):
-        """ Create a new LLaMA model.
-        """
-
+    
+    def _model_and_tokenizer(self, model, tokenizer, **kwargs):
         # load the LLaMA specific tokenizer and model
+        wbits = 4
+        groupsize = 128
+        model_dir = kwargs['model_dir']
+
         if isinstance(model, str):
             model_name = model
             model = load_quantized(model, wbits, groupsize, model_dir)
@@ -27,8 +26,8 @@ class LLaMAQuantized(Transformers):
             print(f'Loading tokenizer from: {tokenizer_path}')
 
             tokenizer = LlamaTokenizer.from_pretrained(Path(tokenizer_path))
-
-        super().__init__(model, tokenizer=tokenizer, device_map=device_map, **kwargs)
+            
+        return super()._model_and_tokenizer(model, tokenizer, **kwargs)
 
 
     @staticmethod
