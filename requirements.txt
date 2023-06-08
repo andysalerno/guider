@@ -2,3 +2,4 @@ git+https://github.com/microsoft/guidance
 git+https://github.com/huggingface/transformers
 torch
 sentence-transformers
+toml

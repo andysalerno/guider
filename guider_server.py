@@ -124,8 +124,10 @@ class MyHandler(BaseHTTPRequestHandler):
         for output in g(stream=True, **parameters):
             filtered_variables = dict()
 
+            print(f'variables: {output.variables()}')
+
             for key, val in output.variables().items():
-                if key not in parameters.keys() and key != 'llm':
+                if isinstance(val, str) and key not in parameters.keys() and key != 'llm':
                     skip = output_skips.get(key, 0)
                     filtered_variables[key] = val[skip:]
                     output_skips[key] = len(val)
