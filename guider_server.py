@@ -5,9 +5,10 @@ from sentence_transformers import SentenceTransformer
 import json
 import sys
 
-guidance.llms.Transformers.cache.clear()
-guidance.llm = LLaMAQuantized(model_dir='models', model='Wizard-Vicuna-13B-Uncensored-GPTQ')
-print(f'Token healing enabled: {guidance.llm.token_healing}')
+def setup_models(model_name='Wizard-Vicuna-13B-Uncensored-GPTQ'):
+    guidance.llms.Transformers.cache.clear()
+    guidance.llm = LLaMAQuantized(model_dir='models', model=model_name)
+    print(f'Token healing enabled: {guidance.llm.token_healing}')
 
 # EMBEDDING_MODEL_NAME = "all-mpnet-base-v2"
 EMBEDDING_MODEL_NAME = "multi-qa-MiniLM-L6-cos-v1"
@@ -149,7 +150,9 @@ class MyHandler(BaseHTTPRequestHandler):
         print('done getting output from model.')
 
 
-def run(server_class=HTTPServer, handler_class=MyHandler):
+def run(model_name='Wizard-Vicuna-13B-Uncensored-GPTQ', server_class=HTTPServer, handler_class=MyHandler):
+    setup_models(model_name)
+    
     server_address = ('0.0.0.0', 8000)
     httpd = server_class(server_address, handler_class)
     print('Starting httpd...\n')
@@ -157,6 +160,12 @@ def run(server_class=HTTPServer, handler_class=MyHandler):
 
 def run_threaded():
     print('starting threaded...')
+    model_name = 'Wizard-Vicuna-13B-Uncensored-GPTQ'
+
+    if len(sys.argv) > 1:
+        model_name = sys.argv[1]
+
+    setup_models(model_name)
     from threading import Thread
     t = Thread(target=run)
     # t.setDaemon(False)
