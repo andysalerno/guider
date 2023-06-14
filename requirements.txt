@@ -3,3 +3,4 @@ git+https://github.com/huggingface/transformers
 torch
 sentence-transformers
 toml
+git+https://github.com/PanQiWei/AutoGPTQ

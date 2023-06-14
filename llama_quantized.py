@@ -8,6 +8,9 @@ from gptq.utils import find_layers
 from gptq import quant
 import sys
 
+# testing changes:
+from auto_gptq import AutoGPTQForCausalLM, BaseQuantizeConfig
+
 class LLaMAQuantized(Transformers):
     """ A HuggingFace transformers version of the LLaMA language model with Guidance support.
     """
@@ -20,12 +23,14 @@ class LLaMAQuantized(Transformers):
 
         if isinstance(model, str):
             model_name = model
-            model = load_quantized(model, wbits, groupsize, model_dir)
+            # model = load_quantized(model, wbits, groupsize, model_dir)
+            model = auto_load_quantized()
 
-            tokenizer_path = f'{model_dir}/{model_name}/'
-            print(f'Loading tokenizer from: {tokenizer_path}')
+            # tokenizer_path = f'{model_dir}/{model_name}/'
+            # print(f'Loading tokenizer from: {tokenizer_path}')
 
-            tokenizer = LlamaTokenizer.from_pretrained(Path(tokenizer_path))
+            # tokenizer = LlamaTokenizer.from_pretrained(Path(tokenizer_path))
+            tokenizer = auto_load_tokenizer_quantized()
             
         return super()._model_and_tokenizer(model, tokenizer, **kwargs)
 
@@ -47,6 +52,32 @@ class LLaMAQuantized(Transformers):
             return '</s>'
         else:
             return ''
+
+def auto_load_quantized():
+    model_name_or_path = "TheBloke/tulu-13B-GPTQ"
+    model_basename = "gptq_model-4bit-128g"
+    use_triton = False
+
+    model = AutoGPTQForCausalLM.from_quantized(model_name_or_path,
+        model_basename=model_basename,
+        use_safetensors=True,
+        trust_remote_code=False,
+        device="cuda:0",
+        use_triton=use_triton,
+        quantize_config=None)
+    
+    return model
+
+def auto_load_tokenizer_quantized():
+    model_name_or_path = "TheBloke/tulu-13B-GPTQ"
+    model_basename = "gptq_model-4bit-128g"
+    use_triton = True
+
+    print('loading tokenizer...')
+    tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, use_fast=False)
+    print('loaded.')
+
+    return tokenizer
 
 def load_quantized(model_name, wbits, groupsize, model_dir):
     # Find the quantized model weights file (.pt/.safetensors)
