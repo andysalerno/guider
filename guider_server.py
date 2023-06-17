@@ -1,6 +1,5 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import guidance
-from llama_quantized import LLaMAQuantized
 from sentence_transformers import SentenceTransformer
 import json
 import sys
