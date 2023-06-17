@@ -1,28 +1,32 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import guidance
-# from llama_quantized import LLaMAQuantized
+from llama_quantized import LLaMAQuantized
 from sentence_transformers import SentenceTransformer
 import json
 import sys
 from auto_gptq import AutoGPTQForCausalLM
 from transformers import AutoTokenizer
+from my_transformer import MyTransformer
 
 def setup_models(model_name='TheBloke/tulu-13B-GPTQ', model_basename='gptq_model-4bit-128g'):
-    use_triton = False
+    # use_triton = False
 
-    model = AutoGPTQForCausalLM.from_quantized(model_name,
-            model_basename=model_basename,
-            use_safetensors=True,
-            trust_remote_code=False,
-            device="cuda:0",
-            use_triton=use_triton,
-            quantize_config=None)
+    # model = AutoGPTQForCausalLM.from_quantized(model_name,
+    #         model_basename=model_basename,
+    #         use_safetensors=True,
+    #         trust_remote_code=False,
+    #         device="cuda:0",
+    #         use_triton=use_triton,
+    #         quantize_config=None)
+        
+    # model._update_model_kwargs_for_generation = None
 
-    tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
+    # tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
 
-    guidance.llms.Transformers.cache.clear()
-    # guidance.llm = LLaMAQuantized(model, tokenizer)
-    guidance.llm = guidance.llms.transformers.Vicuna(model, tokenizer)
+    # guidance.llms.Transformers.cache.clear()
+    guidance.llm = LLaMAQuantized(model_name)
+    # guidance.llm = guidance.llms.transformers.Vicuna(model, tokenizer)
+    # guidance.llm = MyTransformer(model, tokenizer)
     print(f'Token healing enabled: {guidance.llm.token_healing}')
 
 # EMBEDDING_MODEL_NAME = "all-mpnet-base-v2"

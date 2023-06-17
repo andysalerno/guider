@@ -1,6 +1,10 @@
 torch
 sentence-transformers
 toml
-git+https://github.com/microsoft/guidance
-git+https://github.com/huggingface/transformers
-git+https://github.com/PanQiWei/AutoGPTQ
+#git+https://github.com/microsoft/guidance
+#git+https://github.com/huggingface/transformers
+#git+https://github.com/PanQiWei/AutoGPTQ
+guidance
+transformers
+auto-gptq
+huggingface_hub
