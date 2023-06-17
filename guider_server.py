@@ -1,5 +1,6 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import guidance
+# from llama_quantized import LLaMAQuantized
 from sentence_transformers import SentenceTransformer
 import json
 import sys
@@ -20,7 +21,8 @@ def setup_models(model_name='TheBloke/tulu-13B-GPTQ', model_basename='gptq_model
     tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
 
     guidance.llms.Transformers.cache.clear()
-    guidance.llm = LLaMAQuantized(model, tokenizer)
+    # guidance.llm = LLaMAQuantized(model, tokenizer)
+    guidance.llm = guidance.llms.transformers.Vicuna(model, tokenizer)
     print(f'Token healing enabled: {guidance.llm.token_healing}')
 
 # EMBEDDING_MODEL_NAME = "all-mpnet-base-v2"
