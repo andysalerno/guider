@@ -4,10 +4,24 @@ from llama_quantized import LLaMAQuantized
 from sentence_transformers import SentenceTransformer
 import json
 import sys
+from auto_gptq import AutoGPTQForCausalLM
+from transformers import AutoTokenizer
 
-def setup_models(model_name='Wizard-Vicuna-13B-Uncensored-GPTQ'):
+def setup_models(model_name='TheBloke/tulu-13B-GPTQ', model_basename='gptq_model-4bit-128g'):
+    use_triton = False
+
+    model = AutoGPTQForCausalLM.from_quantized(model_name,
+            model_basename=model_basename,
+            use_safetensors=True,
+            trust_remote_code=False,
+            device="cuda:0",
+            use_triton=use_triton,
+            quantize_config=None)
+
+    tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
+
     guidance.llms.Transformers.cache.clear()
-    guidance.llm = LLaMAQuantized(model_dir='models', model=model_name)
+    guidance.llm = LLaMAQuantized(model, tokenizer)
     print(f'Token healing enabled: {guidance.llm.token_healing}')
 
 # EMBEDDING_MODEL_NAME = "all-mpnet-base-v2"
@@ -150,8 +164,8 @@ class MyHandler(BaseHTTPRequestHandler):
         print('done getting output from model.')
 
 
-def run(model_name='Wizard-Vicuna-13B-Uncensored-GPTQ', server_class=HTTPServer, handler_class=MyHandler):
-    setup_models(model_name)
+def run(model_name='TheBloke/tulu-13B-GPTQ', model_basename='gptq_model-4bit-128g', server_class=HTTPServer, handler_class=MyHandler):
+    setup_models(model_name, model_basename)
     
     server_address = ('0.0.0.0', 8000)
     httpd = server_class(server_address, handler_class)
@@ -160,14 +174,15 @@ def run(model_name='Wizard-Vicuna-13B-Uncensored-GPTQ', server_class=HTTPServer,
 
 def run_threaded():
     print('starting threaded...')
-    model_name = 'Wizard-Vicuna-13B-Uncensored-GPTQ'
 
-    if len(sys.argv) > 1:
-        model_name = sys.argv[1]
+    if len(sys.argv) != 3:
+        raise Exception('Expected to be invoked with two arguments: model_name and model_basename')
+
+    model_name = sys.argv[1]
+    model_basename = sys.argv[2]
 
     from threading import Thread
-    t = Thread(target=run, args=[model_name])
-    # t.setDaemon(False)
+    t = Thread(target=run, args=[model_name, model_basename])
     t.start()
 
 if __name__ == '__main__':
