@@ -1,18 +1,14 @@
 from pathlib import Path
-from guidance.llms._transformers import Transformers
-from guidance.llms._llm import LLM
+from guidance.llms import Transformers 
 import torch
-from transformers import AutoConfig, AutoTokenizer, AutoModelForCausalLM, LlamaTokenizer
+from transformers import AutoConfig, AutoModelForCausalLM, LlamaTokenizer
 import transformers
 from gptq.utils import find_layers
 from gptq import quant
 import sys
 from huggingface_hub import snapshot_download
 
-# testing changes:
-# from auto_gptq import AutoGPTQForCausalLM, BaseQuantizeConfig
-
-class LLaMAQuantized(Transformers):
+class LLaMAGPTQ(Transformers):
     """ A HuggingFace transformers version of the LLaMA language model with Guidance support.
     """
     
@@ -21,18 +17,23 @@ class LLaMAQuantized(Transformers):
         wbits = 4
         groupsize = 128
 
-        if isinstance(model, str):
-            model_dir = './models'
-            name_suffix = model.split('/')[1]
-            snapshot_download(repo_id=model, local_dir=f'{model_dir}/{name_suffix}')
+        assert tokenizer is None, "We will not respect any tokenizer from the caller."
+        assert isinstance(model, str), "Model should be a str with LLaMAGPTQ"
 
-            model_name = model
-            model = load_quantized(model, wbits, groupsize, model_dir)
+        print(f'Initializing LLaMAGPTQ with model {model}')
 
-            tokenizer_path = f'{model_dir}/{model_name}/'
-            print(f'Loading tokenizer from: {tokenizer_path}')
+        model_dir = './models'
+        name_suffix = model.split('/')[1]
+        snapshot_download(repo_id=model, local_dir=f'{model_dir}/{name_suffix}')
 
-            tokenizer = LlamaTokenizer.from_pretrained(Path(tokenizer_path))
+        model = _load_quantized(name_suffix, wbits, groupsize, model_dir)
+
+        tokenizer_path = f'{model_dir}/{name_suffix}/'
+        print(f'Loading tokenizer from: {tokenizer_path}')
+
+        tokenizer = LlamaTokenizer.from_pretrained(Path(tokenizer_path))
+
+        print(f'vocab size: {tokenizer.vocab_size}')
             
         return super()._model_and_tokenizer(model, tokenizer, **kwargs)
 
@@ -55,10 +56,11 @@ class LLaMAQuantized(Transformers):
         else:
             return ''
 
-def load_quantized(model_name, wbits, groupsize, model_dir):
+def _load_quantized(model_name, wbits, groupsize, model_dir):
+    print(f'Looking for model named {model_name} in dir {model_dir}...')
     # Find the quantized model weights file (.pt/.safetensors)
     path_to_model = Path(f'{model_dir}/{model_name}')
-    pt_path = find_quantized_model_file(model_dir, model_name, wbits, groupsize)
+    pt_path = _find_quantized_model_file(model_dir, model_name, wbits, groupsize)
     if not pt_path:
         sys.exit()
     else:
@@ -116,7 +118,7 @@ def _load_quant(model, checkpoint, wbits, groupsize=-1, exclude_layers=None, eva
 
 
 # Used to locate the .pt/.safetensors quantized file
-def find_quantized_model_file(model_dir, model_name, wbits, groupsize):
+def _find_quantized_model_file(model_dir, model_name, wbits, groupsize):
     path_to_model = Path(f'{model_dir}/{model_name}')
     pt_path = None
     priority_name_list = [

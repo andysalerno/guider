@@ -1,10 +1,15 @@
 torch
 sentence-transformers
 toml
-#git+https://github.com/microsoft/guidance
+git+https://github.com/microsoft/guidance
 #git+https://github.com/huggingface/transformers
 #git+https://github.com/PanQiWei/AutoGPTQ
-guidance
+# guidance
+# auto-gptq
 transformers
-auto-gptq
 huggingface_hub
+
+# for exllama:
+safetensors==0.3.1
+sentencepiece>=0.1.97
+ninja==1.11.1

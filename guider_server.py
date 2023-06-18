@@ -1,37 +1,29 @@
+import sys
+from pathlib import Path
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import guidance
-from llama_quantized import LLaMAQuantized
+from llama_gptq import LLaMAGPTQ
+
+sys.path.insert(0, str(Path("exllama")))
+from llama_exllama import ExLLaMA
+
 from sentence_transformers import SentenceTransformer
 import json
-import sys
-from auto_gptq import AutoGPTQForCausalLM
-from transformers import AutoTokenizer
-from my_transformer import MyTransformer
-
-def setup_models(model_name='TheBloke/tulu-13B-GPTQ', model_basename='gptq_model-4bit-128g'):
-    # use_triton = False
-
-    # model = AutoGPTQForCausalLM.from_quantized(model_name,
-    #         model_basename=model_basename,
-    #         use_safetensors=True,
-    #         trust_remote_code=False,
-    #         device="cuda:0",
-    #         use_triton=use_triton,
-    #         quantize_config=None)
-        
-    # model._update_model_kwargs_for_generation = None
-
-    # tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
-
-    # guidance.llms.Transformers.cache.clear()
-    guidance.llm = LLaMAQuantized(model_name)
-    # guidance.llm = guidance.llms.transformers.Vicuna(model, tokenizer)
-    # guidance.llm = MyTransformer(model, tokenizer)
-    print(f'Token healing enabled: {guidance.llm.token_healing}')
 
 # EMBEDDING_MODEL_NAME = "all-mpnet-base-v2"
 EMBEDDING_MODEL_NAME = "multi-qa-MiniLM-L6-cos-v1"
 embedding_model = SentenceTransformer(EMBEDDING_MODEL_NAME)
+
+def setup_models(model_name: str, model_basename: str):
+    """
+    model_name: a Huggingface path like TheBlock/tulu-13B-GPTQ
+    model_basename: the filename of the model file, without the .safetensors extension
+    """
+    guidance.llms.Transformers.cache.clear()
+    # guidance.llm = LLaMAGPTQ(model_name)
+    guidance.llm = ExLLaMA(model_name)
+
+    print(f'Token healing enabled: {guidance.llm.token_healing}')
 
 class MyHandler(BaseHTTPRequestHandler):
 
@@ -144,23 +136,27 @@ class MyHandler(BaseHTTPRequestHandler):
         for output in g(stream=True, **parameters):
             filtered_variables = dict()
 
-            print(f'variables: {output.variables()}')
+            # print(f'variables: {output.variables()}')
 
             for key, val in output.variables().items():
-                if isinstance(val, str) and key not in parameters.keys() and key != 'llm':
+                if isinstance(val, str) and key not in parameters.keys() and key != 'llm' and key != '@raw_prefix':
                     skip = output_skips.get(key, 0)
                     filtered_variables[key] = val[skip:]
                     output_skips[key] = len(val)
+            
+            print(f'variables: {filtered_variables}')
             
             response = {
                 'text': output.text[skip_text:],
                 'variables': filtered_variables
             }
 
+            print(f'response:\n{response}')
+
             skip_text = len(output.text)
 
             response_str = f'data: {json.dumps(response).rstrip()}\n\n'
-            print(f'response str:\n{response_str}')
+            # print(f'response str:\n{response_str}')
             sys.stdout.flush()
             self.wfile.write('event: streamtext\n'.encode('utf-8'))
             self.wfile.write(response_str.encode('utf-8'))
