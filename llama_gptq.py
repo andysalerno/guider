@@ -11,6 +11,8 @@ from huggingface_hub import snapshot_download
 class LLaMAGPTQ(Transformers):
     """ A HuggingFace transformers version of the LLaMA language model with Guidance support.
     """
+
+    llm_name: str = "llama"
     
     def _model_and_tokenizer(self, model, tokenizer, **kwargs):
         # load the LLaMA specific tokenizer and model

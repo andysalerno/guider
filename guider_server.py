@@ -4,8 +4,8 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import guidance
 from llama_gptq import LLaMAGPTQ
 
-sys.path.insert(0, str(Path("exllama")))
-from llama_exllama import ExLLaMA
+# sys.path.insert(0, str(Path("exllama")))
+# from llama_exllama import ExLLaMA
 
 from sentence_transformers import SentenceTransformer
 import json
@@ -20,8 +20,8 @@ def setup_models(model_name: str, model_basename: str):
     model_basename: the filename of the model file, without the .safetensors extension
     """
     guidance.llms.Transformers.cache.clear()
-    # guidance.llm = LLaMAGPTQ(model_name)
-    guidance.llm = ExLLaMA(model_name)
+    guidance.llm = LLaMAGPTQ(model_name)
+    # guidance.llm = ExLLaMA(model_name)
 
     print(f'Token healing enabled: {guidance.llm.token_healing}')
 
@@ -126,15 +126,17 @@ class MyHandler(BaseHTTPRequestHandler):
         template: str = data['template']
         parameters: dict = data['parameters']
 
-        g = guidance(template, silent=True)
+        g = guidance(template, stream=True)
 
         output_skips = {}
 
         skip_text = 0
 
-        print('getting model output...')
-        for output in g(stream=True, **parameters):
+        print('streaming model output...')
+        for output in g(**parameters):
             filtered_variables = dict()
+
+            print('...streaming chunk...')
 
             # print(f'variables: {output.variables()}')
 
@@ -165,7 +167,13 @@ class MyHandler(BaseHTTPRequestHandler):
         print('done getting output from model.')
 
 
-def run(model_name='TheBloke/tulu-13B-GPTQ', model_basename='gptq_model-4bit-128g', server_class=HTTPServer, handler_class=MyHandler):
+def run(server_class=HTTPServer, handler_class=MyHandler):
+    if len(sys.argv) != 3:
+        raise Exception('Expected to be invoked with two arguments: model_name and model_basename')
+
+    model_name = sys.argv[1]
+    model_basename = sys.argv[2]
+
     setup_models(model_name, model_basename)
     
     server_address = ('0.0.0.0', 8000)
@@ -176,15 +184,10 @@ def run(model_name='TheBloke/tulu-13B-GPTQ', model_basename='gptq_model-4bit-128
 def run_threaded():
     print('starting threaded...')
 
-    if len(sys.argv) != 3:
-        raise Exception('Expected to be invoked with two arguments: model_name and model_basename')
-
-    model_name = sys.argv[1]
-    model_basename = sys.argv[2]
-
     from threading import Thread
     t = Thread(target=run, args=[model_name, model_basename])
     t.start()
 
 if __name__ == '__main__':
-    run_threaded()
+    # run_threaded()
+    run()
