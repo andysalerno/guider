@@ -1,7 +1,7 @@
 from pathlib import Path
 from guidance.llms import Transformers 
 import torch
-from transformers import AutoConfig, AutoModelForCausalLM, LlamaTokenizer
+from transformers import AutoConfig, AutoModelForCausalLM, LlamaTokenizer, LlamaForCausalLM
 import transformers
 from gptq.utils import find_layers
 from gptq import quant
@@ -39,19 +39,19 @@ class LLaMAAutoGPTQ(Transformers):
 
         print(f'found model with basename {model_basename} in dir {model_dir}')
 
-        use_triton = False
+        use_triton = True
 
         tokenizer = AutoTokenizer.from_pretrained(model, use_fast=True)
 
         model = AutoGPTQForCausalLM.from_quantized(model,
                 model_basename=model_basename,
                 use_safetensors=True,
-                trust_remote_code=False,
-                device="cuda:0",
+                # device="cuda:0",
                 use_triton=use_triton,
+                warmup_triton=use_triton,
                 quantize_config=None)
         
-        model._update_model_kwargs_for_generation = None
+        model._update_model_kwargs_for_generation = LlamaForCausalLM._update_model_kwargs_for_generation
             
         return super()._model_and_tokenizer(model, tokenizer, **kwargs)
 
