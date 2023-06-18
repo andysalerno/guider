@@ -1,18 +1,10 @@
-from pathlib import Path
 from guidance.llms import Transformers 
-import torch
-from transformers import AutoConfig, AutoModelForCausalLM, LlamaTokenizer, LlamaForCausalLM
-import transformers
-from gptq.utils import find_layers
-from gptq import quant
-import sys
+from transformers import LlamaForCausalLM
 from huggingface_hub import snapshot_download
 import os
 import glob
-
-from transformers import AutoTokenizer, pipeline, logging
-from auto_gptq import AutoGPTQForCausalLM, BaseQuantizeConfig
-import argparse
+from transformers import AutoTokenizer
+from auto_gptq import AutoGPTQForCausalLM
 
 class LLaMAAutoGPTQ(Transformers):
     """ A HuggingFace transformers version of the LLaMA language model with Guidance support.
@@ -91,6 +83,3 @@ def find_safetensor_filename(dir):
     else:
         print(f'Warning: multiple safetensor files found in {dir}, picking just one')
         return os.path.basename(files[0])
-
-    # If no file was found, return None
-    return None
