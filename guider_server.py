@@ -3,6 +3,7 @@ from pathlib import Path
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import guidance
 from llama_gptq import LLaMAGPTQ
+from llama_autogptq import LLaMAAutoGPTQ
 
 # sys.path.insert(0, str(Path("exllama")))
 # from llama_exllama import ExLLaMA
@@ -20,7 +21,8 @@ def setup_models(model_name: str, model_basename: str):
     model_basename: the filename of the model file, without the .safetensors extension
     """
     guidance.llms.Transformers.cache.clear()
-    guidance.llm = LLaMAGPTQ(model_name)
+    # guidance.llm = LLaMAGPTQ(model_name)
+    guidance.llm = LLaMAAutoGPTQ(model_name)
     # guidance.llm = ExLLaMA(model_name)
 
     print(f'Token healing enabled: {guidance.llm.token_healing}')
