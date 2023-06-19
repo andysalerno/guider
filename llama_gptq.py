@@ -1,7 +1,7 @@
 from pathlib import Path
 from guidance.llms import Transformers 
 import torch
-from transformers import AutoConfig, AutoModelForCausalLM, LlamaTokenizer
+from transformers import AutoConfig, AutoModelForCausalLM, LlamaTokenizer, LlamaForCausalLM
 import transformers
 from gptq.utils import find_layers
 from gptq import quant
@@ -36,8 +36,14 @@ class LLaMAGPTQ(Transformers):
         tokenizer = LlamaTokenizer.from_pretrained(Path(tokenizer_path))
 
         print(f'vocab size: {tokenizer.vocab_size}')
+        print(f'config: {model.config}')
+        # LlamaForCausalLM.generate
             
         return super()._model_and_tokenizer(model, tokenizer, **kwargs)
+    
+    def delete_me():
+        LlamaForCausalLM.config
+        pass
 
 
     @staticmethod

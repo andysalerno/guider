@@ -23,9 +23,6 @@ class LLaMAAutoGPTQ(Transformers):
         model_dir = f'{models_dir}/{name_suffix}'
         snapshot_download(repo_id=model, local_dir=model_dir)
 
-        # model_name_or_path = "TheBloke/tulu-13B-GPTQ"
-        model_basename = "gptq_model-4bit-128g"
-
         model_basename = find_safetensor_filename(model_dir)
         model_basename = model_basename.split('.safetensors')[0]
 
