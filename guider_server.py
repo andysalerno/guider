@@ -2,9 +2,9 @@ import sys
 from pathlib import Path
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import guidance
-from llama_gptq import LLaMAGPTQ
+# from llama_gptq import LLaMAGPTQ
 from llama_autogptq import LLaMAAutoGPTQ
-from llama_exllama import ExLLaMA
+# from llama_exllama import ExLLaMA
 
 # sys.path.insert(0, str(Path("exllama")))
 # from llama_exllama import ExLLaMA
@@ -13,7 +13,9 @@ from sentence_transformers import SentenceTransformer
 import json
 
 # EMBEDDING_MODEL_NAME = "all-mpnet-base-v2"
-EMBEDDING_MODEL_NAME = "multi-qa-MiniLM-L6-cos-v1"
+# EMBEDDING_MODEL_NAME = "multi-qa-MiniLM-L6-cos-v1"
+# EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
+EMBEDDING_MODEL_NAME = "intfloat/e5-small-v2"
 embedding_model = SentenceTransformer(EMBEDDING_MODEL_NAME)
 
 def setup_models(model_name: str):
@@ -24,8 +26,8 @@ def setup_models(model_name: str):
     guidance.llms.Transformers.cache.clear()
 
     # model = LLaMAGPTQ(model_name)
-    # model = LLaMAAutoGPTQ(model_name)
-    model = ExLLaMA(model_name)
+    model = LLaMAAutoGPTQ(model_name)
+    # model = ExLLaMA(model_name)
     guidance.llm = model
 
 
