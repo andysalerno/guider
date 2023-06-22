@@ -4,7 +4,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import guidance
 # from llama_gptq import LLaMAGPTQ
 from llama_autogptq import LLaMAAutoGPTQ
-# from llama_exllama import ExLLaMA
+from llama_exllama import ExLLaMA
 
 # sys.path.insert(0, str(Path("exllama")))
 # from llama_exllama import ExLLaMA
@@ -26,8 +26,8 @@ def setup_models(model_name: str):
     guidance.llms.Transformers.cache.clear()
 
     # model = LLaMAGPTQ(model_name)
-    model = LLaMAAutoGPTQ(model_name)
-    # model = ExLLaMA(model_name)
+    # model = LLaMAAutoGPTQ(model_name)
+    model = ExLLaMA(model_name)
     guidance.llm = model
 
 
