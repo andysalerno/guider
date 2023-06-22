@@ -22,7 +22,7 @@ class ExllamaHF(PreTrainedModel):
         self.ex_model = ExLlama(self.ex_config)
         self.generation_config = GenerationConfig()
 
-        print(f'spawning with config: {config}')
+        print(f'spawning with config vocab size:: {config.vocab_size}')
 
         self.config.vocab_size = config.vocab_size
 
@@ -48,11 +48,14 @@ class ExllamaHF(PreTrainedModel):
         cache = kwargs['past_key_values'] if 'past_key_values' in kwargs else None
         if cache is None:
             cache = ExLlamaCache(self.ex_model)
+            monkey_patch_cache(cache)
             self.ex_model.forward(torch.tensor([seq[:-1]], dtype=torch.long), cache, preprocess_only=True)
+        else:
+            monkey_patch_cache(cache)
         logits = self.ex_model.forward(torch.tensor([seq[-1:]], dtype=torch.long), cache).to(self.device)
 
-        # return CausalLMOutputWithPast(logits=logits, past_key_values=cache if use_cache else None)
-        return CausalLMOutputWithPast(logits=logits, past_key_values=None)
+        return CausalLMOutputWithPast(logits=logits, past_key_values=cache if use_cache else None)
+        # return CausalLMOutputWithPast(logits=logits, past_key_values=None)
 
     @classmethod
     def from_pretrained(cls, pretrained_model_name_or_path: Optional[Union[str, os.PathLike]], *model_args, **kwargs):
@@ -82,6 +85,18 @@ class ExllamaHF(PreTrainedModel):
         config.fused_mlp_thd = 0
 
         # added by ansalern:
-        config.vocab_size = 32001
+        # config.vocab_size = 32000
 
         return ExllamaHF(config)
+
+def monkey_patch_cache(cache: ExLlamaCache):
+    def monkey_patch(self: ExLlamaCache, index):
+        # guidance calls like so: cache[0][0].shape[-2]
+        # and expects to see the current sequence length.
+        t = torch.zeros((self.current_seq_len, 1))
+        print(f'shape: {t.shape}')
+        print(f'val: {t.shape[-2]}')
+        return (t,)
+
+    cache.__getitem__ = monkey_patch
+    ExLlamaCache.__getitem__ = monkey_patch
