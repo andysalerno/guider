@@ -1,16 +1,11 @@
-import os
 import sys
+import os
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
-# from typing import *
 import torch
-from transformers import (
-    GenerationConfig,
-    LlamaTokenizer,
-    PretrainedConfig,
-    PreTrainedModel,
-)
+from torch.nn import CrossEntropyLoss
+from transformers import GenerationConfig, PretrainedConfig, PreTrainedModel
 from transformers.modeling_outputs import CausalLMOutputWithPast
 
 sys.path.insert(0, str(Path("exllama")))
@@ -23,9 +18,9 @@ class ExllamaHF(PreTrainedModel):
         self.ex_config = config
         self.ex_model = ExLlama(self.ex_config)
         self.generation_config = GenerationConfig()
+        self.lora = None
 
-        print(f"spawning with config vocab size:: {config.vocab_size}")
-
+        # added by ansalern:
         self.config.vocab_size = config.vocab_size
 
     def _validate_model_class(self):
@@ -39,31 +34,44 @@ class ExllamaHF(PreTrainedModel):
 
     @property
     def device(self) -> torch.device:
-        # TODO: May cause problem on multi-gpu inference?
         return torch.device(0)
 
     def __call__(self, *args, **kwargs):
         # TODO: Some decoding methods (such as Contrastive Search) may not work at this time
         assert len(args) == 0, "no *args should be passed to forward"
-        use_cache = kwargs["use_cache"]
+        use_cache = kwargs.get("use_cache", True)
+        labels = kwargs.get("labels", None)
         seq = kwargs["input_ids"][0].tolist()
         cache = kwargs["past_key_values"] if "past_key_values" in kwargs else None
         if cache is None:
             cache = ExLlamaCache(self.ex_model)
-            monkey_patch_cache(cache)
             self.ex_model.forward(
-                torch.tensor([seq[:-1]], dtype=torch.long), cache, preprocess_only=True
+                torch.tensor([seq[:-1]], dtype=torch.long),
+                cache,
+                preprocess_only=True,
+                lora=self.lora,
             )
-        else:
-            monkey_patch_cache(cache)
+
         logits = self.ex_model.forward(
-            torch.tensor([seq[-1:]], dtype=torch.long), cache
-        ).to(self.device)
+            torch.tensor([seq[-1:]], dtype=torch.long), cache, lora=self.lora
+        ).to(kwargs["input_ids"].device)
+
+        loss = None
+        if labels is not None:
+            # Shift so that tokens < n predict n
+            shift_logits = logits[..., :-1, :].contiguous()
+            shift_labels = labels[..., 1:].contiguous()
+            # Flatten the tokens
+            loss_fct = CrossEntropyLoss()
+            shift_logits = shift_logits.view(-1, logits.shape[-1])
+            shift_labels = shift_labels.view(-1)
+            # Enable model parallelism
+            shift_labels = shift_labels.to(shift_logits.device)
+            loss = loss_fct(shift_logits, shift_labels)
 
         return CausalLMOutputWithPast(
             logits=logits, past_key_values=cache if use_cache else None
         )
-        # return CausalLMOutputWithPast(logits=logits, past_key_values=None)
 
     @classmethod
     def from_pretrained(
@@ -78,7 +86,6 @@ class ExllamaHF(PreTrainedModel):
         if isinstance(pretrained_model_name_or_path, str):
             pretrained_model_name_or_path = Path(pretrained_model_name_or_path)
 
-        # pretrained_model_name_or_path = Path(f'{shared.args.model_dir}') / Path(pretrained_model_name_or_path)
         print(f"Loading config from {pretrained_model_name_or_path}/config.json")
         config = ExLlamaConfig(pretrained_model_name_or_path / "config.json")
 
@@ -97,12 +104,8 @@ class ExllamaHF(PreTrainedModel):
 
         # This slowes down a bit but align better with autogptq generation.
         # TODO: Should give user choice to tune the exllama config
-        config.act_order = True
-        config.fused_attn = False
-        config.fused_mlp_thd = 0
-
-        # added by ansalern:
-        # config.vocab_size = 32000
+        # config.fused_attn = False
+        # config.fused_mlp_thd = 0
 
         return ExllamaHF(config)
 
