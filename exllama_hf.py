@@ -37,7 +37,7 @@ class ExllamaHF(PreTrainedModel):
         return torch.device(0)
 
     def __call__(self, *args, **kwargs):
-        # TODO: Some decoding methods (such as Contrastive Search) may not work at this time
+        # TODO: Some decoding methods (such as Contrastive Search) may not work
         assert len(args) == 0, "no *args should be passed to forward"
         use_cache = kwargs.get("use_cache", True)
         labels = kwargs.get("labels", None)

@@ -39,7 +39,7 @@ def setup_models(model_name: str):
 
         model = ExLLaMA(model_name)
     elif MODEL_EXECUTOR == "ctransformers":
-        raise Exception('Not yet implemented')
+        raise Exception("Not yet implemented")
 
     guidance.llms.Transformers.cache.clear()
     guidance.llm = model

@@ -1,4 +1,3 @@
-import sys
 from pathlib import Path
 from guidance.llms import Transformers
 from huggingface_hub import snapshot_download
@@ -9,7 +8,8 @@ from exllama_hf import ExllamaHF
 
 
 class ExLLaMA(Transformers):
-    """A HuggingFace transformers version of the LLaMA language model with Guidance support."""
+    """A HuggingFace transformers version of the LLaMA language
+    model with Guidance support."""
 
     def _model_and_tokenizer(self, model, tokenizer, **kwargs):
         # load the LLaMA specific tokenizer and model
@@ -53,26 +53,7 @@ class ExLLaMA(Transformers):
 
 def _load(model_dir: str):
     model_dir = Path(model_dir)
-    tokenizer_model_path = model_dir / "tokenizer.model"
-    model_config_path = model_dir / "config.json"
 
-    # Find the model checkpoint
-    for ext in [".safetensors", ".pt", ".bin"]:
-        found = list(model_dir.glob(f"*{ext}"))
-        if len(found) > 0:
-            if len(found) > 1:
-                print(
-                    f"More than one {ext} model has been found. The last one will be selected. It could be wrong."
-                )
-                sys.exit()
-
-            model_path = found[-1]
-            break
-
-    print(f"found model path: {model_dir}")
-    # config = ExLlamaConfig(str(model_config_path))
-
-    # exllama_hf = ExllamaHF(config)
     exllama_hf = ExllamaHF.from_pretrained(model_dir)
 
     return (exllama_hf, None)
