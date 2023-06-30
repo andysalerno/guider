@@ -8,7 +8,9 @@ from torch.nn import CrossEntropyLoss
 from transformers import GenerationConfig, PretrainedConfig, PreTrainedModel
 from transformers.modeling_outputs import CausalLMOutputWithPast
 
-sys.path.insert(0, str(Path("exllama")))
+if Path("./exllama").exists():
+    sys.path.insert(0, str(Path("exllama")))
+    print("Adding ./exllama to import tree.")
 from exllama.model import ExLlama, ExLlamaCache, ExLlamaConfig
 
 

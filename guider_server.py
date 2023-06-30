@@ -6,7 +6,9 @@ from sentence_transformers import SentenceTransformer
 
 from llama_attn_hijack import hijack_llama_attention_xformers
 
-sys.path.insert(0, str(Path("guidance")))
+if Path("./guidance").exists():
+    sys.path.insert(0, str(Path("guidance")))
+    print("Adding ./guidance to import tree.")
 import guidance
 
 MODEL_EXECUTOR: str = None
