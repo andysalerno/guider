@@ -4,6 +4,8 @@ from pathlib import Path
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from sentence_transformers import SentenceTransformer
 
+from llama_attn_hijack import hijack_llama_attention_xformers
+
 sys.path.insert(0, str(Path("guidance")))
 import guidance
 
@@ -21,6 +23,9 @@ def setup_models(model_name: str):
     """
     model_name: a Huggingface path like TheBlock/tulu-13B-GPTQ
     """
+
+    # A slight improvement in memory usage by using xformers attention:
+    hijack_llama_attention_xformers()
 
     model = None
 
