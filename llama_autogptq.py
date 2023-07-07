@@ -3,6 +3,7 @@ from transformers import LlamaForCausalLM
 from huggingface_hub import snapshot_download
 import os
 import glob
+import sys
 from transformers import AutoTokenizer
 from auto_gptq import AutoGPTQForCausalLM
 
@@ -29,7 +30,10 @@ class LLaMAAutoGPTQ(Transformers):
         print(f"found model with basename {model_basename} in dir {model_dir}")
 
         use_triton = True
-        low_vram_mode = True
+        low_vram_mode = '--low-vram' in sys.argv
+
+        if low_vram_mode:
+            print('low vram mode enabled')
 
         tokenizer = AutoTokenizer.from_pretrained(model, use_fast=True)
 

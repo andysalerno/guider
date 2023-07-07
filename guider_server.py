@@ -162,7 +162,7 @@ class MyHandler(BaseHTTPRequestHandler):
 def run(server_class=HTTPServer, handler_class=MyHandler):
     global MODEL_EXECUTOR
 
-    if len(sys.argv) != 3:
+    if len(sys.argv) < 3:
         raise Exception(
             "Expected to be invoked with two arguments: model_name and executor"
         )
