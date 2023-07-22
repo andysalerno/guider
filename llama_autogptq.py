@@ -57,11 +57,11 @@ class LLaMAAutoGPTQ(Transformers):
             inject_fused_attention=low_vram_mode is False,
             device="cuda:0",
             use_triton=use_triton,
-            warmup_triton=False,
+            warmup_triton=use_triton,
             quantize_config=None,
-            max_new_tokens=4096,
-            max_tokens=4096,
-            max_length=4096
+            # max_new_tokens=4096,
+            # max_tokens=4096,
+            # max_length=4096
         )
 
         # print(f'tokenizer max_new_tokens: {tokenizer.max_new_tokens}')
@@ -70,11 +70,11 @@ class LLaMAAutoGPTQ(Transformers):
             LlamaForCausalLM._update_model_kwargs_for_generation
         )
 
-        model.config.max_context = 4096
-        model.config.max_length = 4096
-        model.config.max_new_tokens = 4096
+        # model.config.max_context = 4096
+        # model.config.max_length = 4096
+        # model.config.max_new_tokens = 4096
 
-        model.config.max_seq_len = 4096
+        model.config.max_seq_len = 4096 # this is the one
 
         # print(f'model max_new_tokens: {model.max_new_tokens}')
 
