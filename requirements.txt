@@ -5,10 +5,10 @@ toml
 # git+https://github.com/huggingface/transformers
 # git+https://github.com/PanQiWei/AutoGPTQ
 guidance==0.0.64
-auto-gptq
+auto-gptq[triton]
 transformers
 huggingface_hub
-xformers
+xformers==0.0.20
 
 # for exllama:
 # safetensors==0.3.1

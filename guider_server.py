@@ -27,7 +27,7 @@ def setup_models(model_name: str):
     """
 
     # A slight improvement in memory usage by using xformers attention:
-    if '--xformers' in sys.argv:
+    if "--xformers" in sys.argv:
         hijack_llama_attention_xformers()
 
     model = None
