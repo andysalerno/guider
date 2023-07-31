@@ -7,9 +7,16 @@ import sys
 from transformers import AutoTokenizer
 from auto_gptq import AutoGPTQForCausalLM
 
+selected_role = None
+
+
 def get_role():
+    return selected_role
     # return Vicuna1_3Role
-    return Llama2ChatRole
+    # return Llama2ChatRole
+    # return Llama2GuanacoRole
+    # return Llama2UncensoredChatRole
+
 
 class LLaMAAutoGPTQ(Transformers):
     """A HuggingFace transformers version of the LLaMA language model with Guidance support."""
@@ -19,6 +26,14 @@ class LLaMAAutoGPTQ(Transformers):
     def _model_and_tokenizer(self, model, tokenizer, **kwargs):
         assert tokenizer is None, "We will not respect any tokenizer from the caller."
         assert isinstance(model, str), "Model should be a str with LLaMAAutoGPTQ"
+
+        global selected_role
+        if "guanaco" in model.lower():
+            print("found a Guanaco model")
+            selected_role = Llama2GuanacoRole
+        elif "llama-2-7b-chat" in model.lower():
+            print("found a llama2chat model")
+            selected_role = Llama2ChatRole
 
         print(f"Initializing LLaMAAutoGPTQ with model {model}")
 
@@ -59,27 +74,15 @@ class LLaMAAutoGPTQ(Transformers):
             use_triton=use_triton,
             warmup_triton=use_triton,
             quantize_config=None,
-            # max_new_tokens=4096,
-            # max_tokens=4096,
-            # max_length=4096
         )
-
-        # print(f'tokenizer max_new_tokens: {tokenizer.max_new_tokens}')
 
         model._update_model_kwargs_for_generation = (
             LlamaForCausalLM._update_model_kwargs_for_generation
         )
 
-        # model.config.max_context = 4096
-        # model.config.max_length = 4096
-        # model.config.max_new_tokens = 4096
-
-        model.config.max_seq_len = 4096 # this is the one
-
-        # print(f'model max_new_tokens: {model.max_new_tokens}')
+        model.config.max_seq_len = 4096  # this is the one
 
         return super()._model_and_tokenizer(model, tokenizer, **kwargs)
-
 
     @staticmethod
     def role_start(role):
@@ -110,7 +113,6 @@ def find_safetensor_filename(dir):
 
 
 class Vicuna1_3Role:
-
     @staticmethod
     def role_start(role):
         if role == "user":
@@ -128,9 +130,30 @@ class Vicuna1_3Role:
             return "</s>"
         else:
             return ""
+
+
+class Llama2GuanacoRole:
+    @staticmethod
+    def role_start(role):
+        if role == "user":
+            return "### Human: "
+        elif role == "assistant":
+            return "### Assistant: "
+        else:
+            return ""
+
+    @staticmethod
+    def role_end(role):
+        if role == "user":
+            return ""
+        elif role == "assistant":
+            # return ""
+            return "</s>"
+        else:
+            return ""
+
 
 class RedmondPufferRole:
-
     @staticmethod
     def role_start(role):
         if role == "user":
@@ -149,13 +172,14 @@ class RedmondPufferRole:
         else:
             return ""
 
-class Llama2ChatRole:
 
+class Llama2ChatRole:
     @staticmethod
     def role_start(role):
         if role == "user":
             # return " <s>[INST] "
-            return " [INST] "
+            # return " [INST] "
+            return ""
         elif role == "assistant":
             return ""
         else:
@@ -167,6 +191,29 @@ class Llama2ChatRole:
             return " [/INST] "
         elif role == "assistant":
             # return " </s>"
+            # return ""
+            return " </s><s>[INST] "
+        else:
             return ""
+
+
+class Llama2UncensoredChatRole:
+    @staticmethod
+    def role_start(role):
+        if role == "user":
+            # return " <s>[INST] "
+            return "### HUMAN:\n"
+        elif role == "assistant":
+            return "### RESPONSE:\n"
+        else:
+            return ""
+
+    @staticmethod
+    def role_end(role):
+        if role == "user":
+            return "\n"
+        elif role == "assistant":
+            # return " </s>"
+            return "\n"
         else:
             return ""

@@ -4,9 +4,12 @@ toml
 # git+https://github.com/microsoft/guidance
 # git+https://github.com/huggingface/transformers
 # git+https://github.com/PanQiWei/AutoGPTQ
+# guidance==0.0.64
 guidance==0.0.64
 auto-gptq[triton]
 transformers
+ctransformers
+bitsandbytes
 huggingface_hub
 xformers==0.0.20
 

@@ -16,8 +16,8 @@ MODEL_EXECUTOR: str = None
 
 # EMBEDDING_MODEL_NAME = "all-mpnet-base-v2"
 # EMBEDDING_MODEL_NAME = "multi-qa-MiniLM-L6-cos-v1"
-# EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
-EMBEDDING_MODEL_NAME = "intfloat/e5-small-v2"
+EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
+# EMBEDDING_MODEL_NAME = "intfloat/e5-small-v2"
 embedding_model = SentenceTransformer(EMBEDDING_MODEL_NAME)
 
 
@@ -47,7 +47,13 @@ def setup_models(model_name: str):
 
         model = ExLLaMA(model_name)
     elif MODEL_EXECUTOR == "ctransformers":
-        raise Exception("Not yet implemented")
+        from llama_ctransformers import LLaMATransformer
+
+        model = LLaMATransformer(model_name)
+    elif MODEL_EXECUTOR == "transformers":
+        from llama_transformer import LLaMATransformer
+
+        model = LLaMATransformer(model_name)
 
     guidance.llms.Transformers.cache.clear()
     guidance.llm = model
