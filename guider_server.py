@@ -54,6 +54,10 @@ def setup_models(model_name: str):
         from llama_transformer import LLaMATransformer
 
         model = LLaMATransformer(model_name)
+    elif MODEL_EXECUTOR == "llamacpp":
+        from llama_cpp_hf import LlamacppHF
+
+        model = LlamacppHF(model_name)
 
     guidance.llms.Transformers.cache.clear()
     guidance.llm = model
