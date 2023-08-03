@@ -1,14 +1,7 @@
+from ctransformers import AutoModelForCausalLM
+from transformers import AutoTokenizer
 from guidance.llms import Transformers
 
-# from transformers import LlamaForCausalLM
-from transformers import (
-    AutoConfig,
-    AutoModelForCausalLM,
-    AutoTokenizer,
-    BitsAndBytesConfig,
-)
-
-# from optimum.bettertransformer import BetterTransformer
 import os
 import sys
 import glob
@@ -45,32 +38,12 @@ class LLaMATransformer(Transformers):
             print("found a llama2chat model")
             selected_role = Llama2ChatRole
 
-        print(f"Initializing LLaMAAutoGPTQ with model {model}")
+        print(f"Initializing ctransformers with model {model}")
 
-        low_vram_mode = "--low-vram" in sys.argv
-        if low_vram_mode:
-            print("low vram mode enabled")
+        tokenizer = AutoTokenizer.from_pretrained("TheBloke/StableBeluga-13B-GPTQ")
 
-        tokenizer = AutoTokenizer.from_pretrained(model)
-
-        double_quant_config = BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_use_double_quant=low_vram_mode,
-            bnb_4bit_quant_type="nf4",
-        )
-
-        config = AutoConfig.from_pretrained(model)
-        config.pretraining_tp = 1
-        model = AutoModelForCausalLM.from_pretrained(
-            model,
-            config=config,
-            quantization_config=double_quant_config,
-            torch_dtype=torch.float16,
-            load_in_4bit=True,
-            device_map="auto",
-        )
-
-        # model = BetterTransformer.transform(model, keep_original_model=False)
+        model = AutoModelForCausalLM.from_pretrained(model, model_type="llama")
+        model.device = "cpu"
 
         # model.config.max_seq_len = 4096  # this is the one
 
