@@ -50,6 +50,13 @@ class Memory:
         self.collection.add(ids, documents=documents, metadatas=metadatas)
 
     def query(self, query_text: str, n_results: int, where: Dict[str, str]):
-        return self.collection.query(
+        result = self.collection.query(
             query_texts=query_text, n_results=n_results, where=where
         )
+
+        result["ids"] = result["ids"][0]
+        result["documents"] = result["documents"][0]
+        result["metadatas"] = result["metadatas"][0]
+        result["distances"] = result["distances"][0]
+
+        return result
