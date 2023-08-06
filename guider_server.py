@@ -2,8 +2,10 @@ import sys
 import json
 from pathlib import Path
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from typing import Dict, List
 from sentence_transformers import SentenceTransformer
 from memory import Memory
+from urllib.parse import urlparse, parse_qs
 
 from llama_attn_hijack import hijack_llama_attention_xformers
 
@@ -73,17 +75,73 @@ def setup_models(model_name: str):
 
 class MyHandler(BaseHTTPRequestHandler):
     def do_POST(self):
-        print(f"post incoming: {self.path}")
+        print(f"POST {self.path}")
 
         if self.path == "/embeddings":
             self.handle_embeddings()
         elif self.path == "/chat":
             self.handle_chat_streaming()
         elif self.path == "/memory":
-            self.handle_memory()
+            self.handle_memory_post()
 
-    def handle_memory(self):
-        print("memory requested")
+    def do_GET(self):
+        print(f"GET {self.path}")
+
+        if self.path == "/memory":
+            self.handle_memory_get()
+
+    def handle_memory_get(self):
+        print("memory get requested")
+
+        parsed_path = urlparse(self.path)
+        path = parsed_path.path
+        params = parse_qs(parsed_path.query)
+
+        # For example, let's print the parsed values
+        print("Path:", path)
+        print("Parameters:", params)
+
+        # Send response headers
+        self.send_response(200)
+        self.send_header("Content-type", "text/plain")
+        self.end_headers()
+
+        query: str = params["query"]
+        kind: str = params.get("kind", "")
+        top_n: int = int(params.get("top_n", "3"))
+
+        result = memory.query(query, top_n, {"kind": kind})
+
+        print(f"result: {result}")
+        print(f"result json: {json.dumps(result)}")
+
+        # Write response body
+        self.wfile.write(b"done\n")
+        for key, value in params.items():
+            self.wfile.write(f"{key}: {value[0]}\n".encode("utf-8"))
+
+    def handle_memory_post(self):
+        print("memory write requested")
+        content_length = int(self.headers["Content-Length"])
+        body = json.loads(self.rfile.read(content_length).decode("utf-8"))
+
+        action = body["action"]
+
+        print(f"Memory action: {action}")
+
+        ids: List[str] = body["ids"]
+        documents: List[str] = body["documents"]
+        metadatas: List[Dict[str, str]] = body["metadatas"]
+
+        if len(ids) != len(documents) != len(metadatas):
+            print(
+                f"Warning: body count mismatch: {len(ids)}, {len(documents)}, {len(metadatas)}"
+            )
+            self.send_error(400)
+
+            return
+
+        memory.add_many(ids, documents, metadatas)
 
     def handle_embeddings(self):
         print("embeddings requested")
