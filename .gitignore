@@ -163,6 +163,7 @@ gptq/
 models/
 exllama/
 guidance/
+db/
 .vscode/
 .DS_Store
 

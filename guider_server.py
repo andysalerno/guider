@@ -87,7 +87,7 @@ class MyHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         print(f"GET {self.path}")
 
-        if self.path == "/memory":
+        if self.path.startswith("/memory"):
             self.handle_memory_get()
 
     def handle_memory_get(self):
@@ -103,22 +103,24 @@ class MyHandler(BaseHTTPRequestHandler):
 
         # Send response headers
         self.send_response(200)
-        self.send_header("Content-type", "text/plain")
+        self.send_header("Content-type", "application/json")
         self.end_headers()
 
         query: str = params["query"]
         kind: str = params.get("kind", "")
         top_n: int = int(params.get("top_n", "3"))
 
-        result = memory.query(query, top_n, {"kind": kind})
+        filters = dict()
+        if kind != "":
+            filters["kind"] = kind
+
+        result = memory.query(query, top_n, filters)
+        result_json = json.dumps(result).encode("utf-8")
 
         print(f"result: {result}")
-        print(f"result json: {json.dumps(result)}")
+        print(f"result json: {result_json}")
 
-        # Write response body
-        self.wfile.write(b"done\n")
-        for key, value in params.items():
-            self.wfile.write(f"{key}: {value[0]}\n".encode("utf-8"))
+        self.wfile.write(result_json)
 
     def handle_memory_post(self):
         print("memory write requested")
