@@ -81,9 +81,9 @@ class LLaMAAutoGPTQ(Transformers):
             quantize_config=None,
         )
 
-        model._update_model_kwargs_for_generation = (
-            LlamaForCausalLM._update_model_kwargs_for_generation
-        )
+        # model._update_model_kwargs_for_generation = (
+        #     LlamaForCausalLM._update_model_kwargs_for_generation
+        # )
 
         model.config.max_seq_len = 4096  # this is the one
 

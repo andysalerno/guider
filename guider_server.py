@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from sentence_transformers import SentenceTransformer
+from memory import Memory
 
 from llama_attn_hijack import hijack_llama_attention_xformers
 
@@ -19,6 +20,8 @@ MODEL_EXECUTOR: str = None
 EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
 # EMBEDDING_MODEL_NAME = "intfloat/e5-small-v2"
 embedding_model = SentenceTransformer(EMBEDDING_MODEL_NAME)
+
+memory = None
 
 
 def setup_models(model_name: str):
@@ -59,6 +62,10 @@ def setup_models(model_name: str):
 
         model = LlamacppHF(model_name)
 
+    global memory
+    memory = Memory(embedding_model)
+    print("Memory initialized.")
+
     guidance.llms.Transformers.cache.clear()
     guidance.llm = model
     print(f"Token healing enabled: {guidance.llm.token_healing}")
@@ -72,6 +79,11 @@ class MyHandler(BaseHTTPRequestHandler):
             self.handle_embeddings()
         elif self.path == "/chat":
             self.handle_chat_streaming()
+        elif self.path == "/memory":
+            self.handle_memory()
+
+    def handle_memory(self):
+        print("memory requested")
 
     def handle_embeddings(self):
         print("embeddings requested")

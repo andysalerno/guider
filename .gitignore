@@ -161,4 +161,8 @@ cython_debug/
 
 gptq/
 models/
+exllama/
+guidance/
+.vscode/
 .DS_Store
+

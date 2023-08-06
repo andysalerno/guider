@@ -18,6 +18,9 @@ bitsandbytes
 huggingface_hub
 xformers==0.0.20
 
+# for memory:
+chromadb
+
 # for exllama:
 # safetensors==0.3.1
 # sentencepiece>=0.1.97
