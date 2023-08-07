@@ -26,7 +26,8 @@ def get_collection(model: SentenceTransformer):
     if collection is None:
         print("Getting or creating collection my_collection")
         collection = client.get_or_create_collection(
-            name="my_collection", embedding_function=model.encode
+            # name="my_collection", embedding_function=model.encode
+            name="my_collection"
         )
 
         print(f"my_collection loaded, it has document count: {collection.count()}")
@@ -50,7 +51,10 @@ class Memory:
         self.collection.add(ids, documents=documents)
 
     def add(self, id: str, document: str, metadata: Dict[str, str]):
-        self.add_many([id], [document], [metadata])
+        # self.add_many([id], [document], [metadata])
+        id = id if len(id) > 1 else str(uuid.uuid4())
+        print(f"adding id: {id} document: {document}")
+        self.collection.add(id, documents=document)
 
     def query(self, query_text: str, n_results: int, where: Dict[str, str]):
         result = self.collection.query(

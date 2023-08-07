@@ -139,7 +139,7 @@ class MyHandler(BaseHTTPRequestHandler):
 
             return
 
-        memory.add_many(ids, documents, metadatas)
+        memory.add(ids[0], documents[0], metadatas[0])
 
     def handle_embeddings(self):
         print("embeddings requested")
