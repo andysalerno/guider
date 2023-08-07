@@ -127,10 +127,6 @@ class MyHandler(BaseHTTPRequestHandler):
         content_length = int(self.headers["Content-Length"])
         body = json.loads(self.rfile.read(content_length).decode("utf-8"))
 
-        action = body["action"]
-
-        print(f"Memory action: {action}")
-
         ids: List[str] = body["ids"]
         documents: List[str] = body["documents"]
         metadatas: List[Dict[str, str]] = body["metadatas"]

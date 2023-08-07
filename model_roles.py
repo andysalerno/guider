@@ -2,9 +2,9 @@ class Vicuna1_3Role:
     @staticmethod
     def role_start(role):
         if role == "user":
-            return "USER: "
+            return "\nUSER: "
         elif role == "assistant":
-            return "ASSISTANT: "
+            return "\nASSISTANT: "
         else:
             return ""
 

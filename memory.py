@@ -1,6 +1,7 @@
 from typing import Dict, List
 import chromadb
 from sentence_transformers import SentenceTransformer
+import uuid
 
 client = None
 collection = None
@@ -23,13 +24,12 @@ def get_collection(model: SentenceTransformer):
     client = get_client()
 
     if collection is None:
-        print("Creating collection my_collection")
+        print("Getting or creating collection my_collection")
         collection = client.get_or_create_collection(
             name="my_collection", embedding_function=model.encode
         )
-        print("my_collection created")
-    else:
-        print(f"Loaded existing collection with document count: {collection.count()}")
+
+        print(f"my_collection loaded, it has document count: {collection.count()}")
 
     return collection
 
@@ -44,10 +44,13 @@ class Memory:
     def add_many(
         self, ids: List[str], documents: List[str], metadatas: List[Dict[str, str]]
     ):
-        self.collection.add(ids, documents=documents, metadatas=metadatas)
+        ids = [id if len(id) > 1 else str(uuid.uuid4()) for id in ids]
+        # self.collection.add(ids, documents=documents, metadatas=metadatas)
+        print(f"adding many: ids: {ids}\ndocuments: {documents}")
+        self.collection.add(ids, documents=documents)
 
-    def add(self, ids: str, documents: str, metadatas: Dict[str, str]):
-        self.collection.add(ids, documents=documents, metadatas=metadatas)
+    def add(self, id: str, document: str, metadata: Dict[str, str]):
+        self.add_many([id], [document], [metadata])
 
     def query(self, query_text: str, n_results: int, where: Dict[str, str]):
         result = self.collection.query(
