@@ -1,5 +1,7 @@
-from typing import Dict, List
+from typing import Any, Dict, List
 import chromadb
+from chromadb.config import Settings
+from chromadb.api.types import EmbeddingFunction, Documents, Embeddings
 from sentence_transformers import SentenceTransformer
 import uuid
 
@@ -11,8 +13,9 @@ def get_client():
     global client
 
     if client is None:
-        print("Creating client at: db/chromadb.db")
-        client = chromadb.PersistentClient(path="db/chromadb.db")
+        print("Creating client")
+        # client = chromadb.PersistentClient(path="db/chromadb.db")
+        client = chromadb.Client(Settings(anonymized_telemetry=False))
         print("Client created.")
 
     return client
@@ -26,8 +29,8 @@ def get_collection(model: SentenceTransformer):
     if collection is None:
         print("Getting or creating collection my_collection")
         collection = client.get_or_create_collection(
-            # name="my_collection", embedding_function=model.encode
-            name="my_collection"
+            name="my_collection",
+            embedding_function=LocalSentenceTransformerEmbeddingFunction(model),
         )
 
         print(f"my_collection loaded, it has document count: {collection.count()}")
@@ -55,6 +58,7 @@ class Memory:
         id = id if len(id) > 1 else str(uuid.uuid4())
         print(f"adding id: {id} document: {document}")
         self.collection.add(id, documents=document)
+        print("done adding item")
 
     def query(self, query_text: str, n_results: int, where: Dict[str, str]):
         result = self.collection.query(
@@ -65,5 +69,26 @@ class Memory:
         result["documents"] = result["documents"][0]
         result["metadatas"] = result["metadatas"][0]
         result["distances"] = result["distances"][0]
+
+        return result
+
+
+class LocalSentenceTransformerEmbeddingFunction(EmbeddingFunction):
+    def __init__(
+        self,
+        model: SentenceTransformer,
+    ):
+        self._model = model
+        self._normalize_embeddings = False
+
+    def __call__(self, texts: Documents) -> Embeddings:
+        print("embedding provider invoked...")
+        result = self._model.encode(
+            list(texts),
+            convert_to_numpy=True,
+            normalize_embeddings=self._normalize_embeddings,
+        ).tolist()
+
+        print("embedding call invoked, and got result")
 
         return result
