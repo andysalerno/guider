@@ -11,7 +11,8 @@ optimum
 tqdm
 
 guidance==0.0.64
-auto-gptq[triton]
+# auto-gptq[triton]
+https://github.com/PanQiWei/AutoGPTQ/releases/download/v0.4.0/auto_gptq-0.4.0+cu118-cp310-cp310-linux_x86_64.whl
 transformers
 ctransformers
 bitsandbytes

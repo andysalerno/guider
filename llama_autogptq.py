@@ -36,6 +36,9 @@ class LLaMAAutoGPTQ(Transformers):
         elif "llama-2-7b-chat" in model.lower():
             print("found a llama2chat model")
             selected_role = Llama2ChatRole
+        elif "llama-2-13b-chat" in model.lower():
+            print("found a llama2chat model")
+            selected_role = Llama2ChatRole
         elif "vicuna" in model.lower():
             print("found a vicuna model")
             selected_role = Vicuna1_3Role
@@ -58,7 +61,7 @@ class LLaMAAutoGPTQ(Transformers):
 
         print(f"found model with basename {model_basename} in dir {model_dir}")
 
-        use_triton = True
+        use_triton = False  # testing new autogptq
         low_vram_mode = "--low-vram" in sys.argv
 
         if low_vram_mode:
@@ -74,7 +77,7 @@ class LLaMAAutoGPTQ(Transformers):
             model_basename=model_basename,
             use_safetensors=True,
             inject_fused_mlp=low_vram_mode is False,
-            inject_fused_attention=low_vram_mode is False,
+            inject_fused_attention=use_triton,
             device="cuda:0",
             use_triton=use_triton,
             warmup_triton=use_triton,
