@@ -1,3 +1,23 @@
+class OpenChatRole:
+    @staticmethod
+    def role_start(role):
+        if role == "user":
+            return "User: "
+        elif role == "assistant":
+            return "Assistant: "
+        else:
+            return ""
+
+    @staticmethod
+    def role_end(role):
+        if role == "user":
+            return "<|end_of_turn|>"
+        elif role == "assistant":
+            return "<|end_of_turn|>"
+        else:
+            return ""
+
+
 class Vicuna1_3Role:
     @staticmethod
     def role_start(role):
