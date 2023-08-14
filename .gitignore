@@ -166,4 +166,4 @@ guidance/
 db/
 .vscode/
 .DS_Store
-
+.hakey
