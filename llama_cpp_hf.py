@@ -182,4 +182,4 @@ class LlamacppHFInner(PreTrainedModel):
         # Llama = llama_cpp_lib().Llama
         model = Llama(**params)
 
-        return LlamacppHF(model)
+        return LlamacppHFInner(model)
