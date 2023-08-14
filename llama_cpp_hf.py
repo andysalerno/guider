@@ -74,7 +74,9 @@ class LlamacppHFInner(PreTrainedModel):
         self.generation_config = GenerationConfig()
         self.cache = None
 
-        self.config.vocab_size = 32002
+        # sometimes this manually has to change.
+        # some models expect i.e. 32002, others 32000.
+        self.config.vocab_size = 32000
 
     def _validate_model_class(self):
         pass
