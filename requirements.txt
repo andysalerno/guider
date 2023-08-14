@@ -3,7 +3,6 @@ sentence-transformers
 toml
 # git+https://github.com/microsoft/guidance
 # git+https://github.com/huggingface/transformers
-# git+https://github.com/PanQiWei/AutoGPTQ
 # guidance==0.0.64
 
 git+https://github.com/huggingface/accelerate.git@main
@@ -12,7 +11,8 @@ tqdm
 
 guidance==0.0.64
 # auto-gptq[triton]
-https://github.com/PanQiWei/AutoGPTQ/releases/download/v0.4.0/auto_gptq-0.4.0+cu118-cp310-cp310-linux_x86_64.whl
+https://github.com/PanQiWei/AutoGPTQ/releases/download/v0.4.1/auto_gptq-0.4.1+cu118-cp310-cp310-linux_x86_64.whl
+# git+https://github.com/PanQiWei/AutoGPTQ
 transformers
 ctransformers
 bitsandbytes

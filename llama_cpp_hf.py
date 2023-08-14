@@ -95,12 +95,11 @@ class LlamacppHFInner(PreTrainedModel):
         return torch.device(0)
 
     def __call__(self, *args, **kwargs):
-        # TODO: Some decoding methods (such as Contrastive Search) may not work at this time
-        assert len(args) == 0, "no *args should be passed to forward"
+        input_ids = args[0] if len(args) > 0 else kwargs["input_ids"]
         use_cache = kwargs.get("use_cache", True)
         labels = kwargs.get("labels", None)
-        seq = kwargs["input_ids"][0].tolist()
-        cache = kwargs["past_key_values"] if "past_key_values" in kwargs else None
+        cache = kwargs.get("past_key_values", None)
+        seq = input_ids[0].tolist()
 
         # Make the forward call
         seq_tensor = torch.tensor(seq)
@@ -121,7 +120,7 @@ class LlamacppHFInner(PreTrainedModel):
             self.model.eval(seq)
             logits = torch.tensor(self.model.eval_logits)
             logits = logits.view(1, logits.shape[0], logits.shape[1]).to(
-                kwargs["input_ids"].device
+                input_ids.device
             )
 
         self.cache = seq_tensor
@@ -163,7 +162,6 @@ class LlamacppHFInner(PreTrainedModel):
         else:
             model_file = list(path.glob("*ggml*.bin"))[0]
 
-        print(f"llama.cpp weights detected: {model_file}\n")
         params = {
             "model_path": str(model_file),
             "n_ctx": 4096,
@@ -181,5 +179,7 @@ class LlamacppHFInner(PreTrainedModel):
             "logits_all": True,
         }
 
+        # Llama = llama_cpp_lib().Llama
         model = Llama(**params)
-        return LlamacppHFInner(model)
+
+        return LlamacppHF(model)

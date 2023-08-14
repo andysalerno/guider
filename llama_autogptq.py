@@ -7,7 +7,13 @@ import sys
 from transformers import AutoTokenizer
 from auto_gptq import AutoGPTQForCausalLM
 
-from model_roles import Llama2ChatRole, Llama2GuanacoRole, OpenChatRole, Vicuna1_3Role
+from model_roles import (
+    Dolphin_Role,
+    Llama2ChatRole,
+    Llama2GuanacoRole,
+    OpenChatRole,
+    Vicuna1_3Role,
+)
 
 selected_role = None
 
@@ -45,6 +51,9 @@ class LLaMAAutoGPTQ(Transformers):
         elif "orca" in model.lower():
             print("found an orca model")
             selected_role = OpenChatRole
+        elif "dolphin" in model.lower():
+            print("found an orca model")
+            selected_role = Dolphin_Role
 
         print(f"Initializing LLaMAAutoGPTQ with model {model}")
 

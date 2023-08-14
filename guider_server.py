@@ -3,9 +3,9 @@ import json
 from pathlib import Path
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import Dict, List
+from urllib.parse import urlparse, parse_qs
 from sentence_transformers import SentenceTransformer
 from memory import Memory
-from urllib.parse import urlparse, parse_qs
 
 from llama_attn_hijack import hijack_llama_attention_xformers
 
