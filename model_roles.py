@@ -143,3 +143,26 @@ class Llama2UncensoredChatRole:
             return "\n"
         else:
             return ""
+
+
+def get_role_from_model_name(model: str):
+    if "guanaco" in model.lower():
+        print("found a Guanaco model")
+        return Llama2GuanacoRole
+    elif "llama-2-7b-chat" in model.lower():
+        print("found a llama2chat model")
+        return Llama2ChatRole
+    elif "llama-2-13b-chat" in model.lower():
+        print("found a llama2chat model")
+        return Llama2ChatRole
+    elif "vicuna" in model.lower():
+        print("found a vicuna model")
+        return Vicuna1_3Role
+    elif "orca" in model.lower():
+        print("found an orca model")
+        return OpenChatRole
+    elif "dolphin" in model.lower():
+        print("found an orca model")
+        return Dolphin_Role
+    else:
+        raise Exception(f"no matching model found for {model}")

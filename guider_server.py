@@ -19,8 +19,8 @@ MODEL_EXECUTOR: str = None
 
 # EMBEDDING_MODEL_NAME = "all-mpnet-base-v2"
 # EMBEDDING_MODEL_NAME = "multi-qa-MiniLM-L6-cos-v1"
-EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
-# EMBEDDING_MODEL_NAME = "intfloat/e5-small-v2"
+# EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
+EMBEDDING_MODEL_NAME = "intfloat/e5-small-v2"
 embedding_model = SentenceTransformer(EMBEDDING_MODEL_NAME)
 
 memory = None

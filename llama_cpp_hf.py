@@ -5,12 +5,11 @@ from typing import Any, Dict, Optional, Union
 import torch
 from guidance.llms import Transformers
 from transformers import AutoTokenizer
-from transformers import LlamaForCausalLM
 from torch.nn import CrossEntropyLoss
 from transformers import GenerationConfig, PretrainedConfig, PreTrainedModel
 from transformers.modeling_outputs import CausalLMOutputWithPast
 
-from model_roles import Llama2ChatRole, Llama2GuanacoRole
+from model_roles import Llama2ChatRole, Llama2GuanacoRole, get_role_from_model_name
 
 if torch.cuda.is_available() and not torch.version.hip:
     try:
@@ -43,12 +42,8 @@ class LlamacppHF(Transformers):
         if "guanaco" in model.lower():
             print("found a Guanaco model")
             selected_role = Llama2GuanacoRole
-        elif "llama-2-7b-chat" in model.lower():
-            print("found a llama2chat model")
-            selected_role = Llama2ChatRole
-        elif "llama-2-13b-chat" in model.lower():
-            print("found a llama2chat model")
-            selected_role = Llama2ChatRole
+
+        selected_role = get_role_from_model_name(model)
 
         print(f"Initializing LLaMAAutoGPTQ with model {model}")
 
@@ -79,7 +74,7 @@ class LlamacppHFInner(PreTrainedModel):
         self.generation_config = GenerationConfig()
         self.cache = None
 
-        self.config.vocab_size = 32000
+        self.config.vocab_size = 32002
 
     def _validate_model_class(self):
         pass
