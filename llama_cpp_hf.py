@@ -160,7 +160,7 @@ class LlamacppHFInner(PreTrainedModel):
             "n_ctx": 4096,
             "seed": 0,
             "n_threads": 15,
-            # "n_batch": 1,
+            "n_batch": 512,
             "use_mmap": True,
             "use_mlock": False,
             "low_vram": False,
