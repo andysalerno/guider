@@ -9,7 +9,7 @@ from torch.nn import CrossEntropyLoss
 from transformers import GenerationConfig, PretrainedConfig, PreTrainedModel
 from transformers.modeling_outputs import CausalLMOutputWithPast
 
-from model_roles import Llama2ChatRole, Llama2GuanacoRole, get_role_from_model_name
+from model_roles import get_role_from_model_name
 
 if torch.cuda.is_available() and not torch.version.hip:
     try:
@@ -39,10 +39,6 @@ class LlamacppHF(Transformers):
         assert isinstance(model, str), "Model should be a str with LLaMAAutoGPTQ"
 
         global selected_role
-        if "guanaco" in model.lower():
-            print("found a Guanaco model")
-            selected_role = Llama2GuanacoRole
-
         selected_role = get_role_from_model_name(model)
 
         print(f"Initializing LLaMAAutoGPTQ with model {model}")
@@ -163,12 +159,12 @@ class LlamacppHFInner(PreTrainedModel):
             "model_path": str(model_file),
             "n_ctx": 4096,
             "seed": 0,
-            "n_threads": 14,
+            "n_threads": 15,
             # "n_batch": 1,
             "use_mmap": True,
             "use_mlock": False,
             "low_vram": False,
-            "mul_mat_q": True,
+            "mul_mat_q": False,
             "n_gpu_layers": 41,
             # "rope_freq_base": 10000 * shared.args.alpha_value ** (64 / 63.0),
             # "rope_freq_scale": 1.0 / shared.args.compress_pos_emb,
