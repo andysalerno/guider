@@ -18,6 +18,8 @@ ctransformers
 bitsandbytes
 huggingface_hub
 xformers==0.0.20
+llama-cpp-python
+https://github.com/jllllll/llama-cpp-python-cuBLAS-wheels/releases/download/wheels/llama_cpp_python-0.1.78+cu122-cp310-cp310-linux_x86_64.whl
 
 # for memory:
 chromadb

@@ -168,12 +168,12 @@ class LlamacppHFInner(PreTrainedModel):
             "use_mmap": True,
             "use_mlock": False,
             "low_vram": False,
-            "n_gpu_layers": 40,
+            "n_gpu_layers": 41,
             # "rope_freq_base": 10000 * shared.args.alpha_value ** (64 / 63.0),
             # "rope_freq_scale": 1.0 / shared.args.compress_pos_emb,
             # "n_gqa": shared.args.n_gqa or None,
             # "rms_norm_eps": shared.args.rms_norm_eps or None,
-            "logits_all": True,
+            "logits_all": False,
         }
 
         # Llama = llama_cpp_lib().Llama

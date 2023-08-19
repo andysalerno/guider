@@ -198,7 +198,7 @@ class MyHandler(BaseHTTPRequestHandler):
         template: str = data["template"]
         parameters: dict = data["parameters"]
 
-        g = guidance(template, stream=True)
+        g = guidance(template, stream=True, caching=False)
 
         output_skips = {}
 
