@@ -10,16 +10,20 @@ optimum
 tqdm
 
 guidance==0.0.64
+
+https://github.com/PanQiWei/AutoGPTQ/releases/download/v0.4.2/auto_gptq-0.4.2+cu118-cp310-cp310-linux_x86_64.whl
 # auto-gptq[triton]
-https://github.com/PanQiWei/AutoGPTQ/releases/download/v0.4.1/auto_gptq-0.4.1+cu118-cp310-cp310-linux_x86_64.whl
 # git+https://github.com/PanQiWei/AutoGPTQ
+
 transformers
 ctransformers
 bitsandbytes
 huggingface_hub
 xformers==0.0.20
-llama-cpp-python
-https://github.com/jllllll/llama-cpp-python-cuBLAS-wheels/releases/download/wheels/llama_cpp_python-0.1.78+cu122-cp310-cp310-linux_x86_64.whl
+
+# llama-cpp-python
+# https://github.com/jllllll/llama-cpp-python-cuBLAS-wheels/releases/download/wheels/llama_cpp_python-0.1.78+cu122-cp310-cp310-linux_x86_64.whl
+https://github.com/jllllll/llama-cpp-python-cuBLAS-wheels/releases/download/AVX/llama_cpp_python-0.2.6+cu121-cp310-cp310-manylinux_2_31_x86_64.whl
 
 # for memory:
 chromadb

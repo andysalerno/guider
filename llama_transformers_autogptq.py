@@ -1,11 +1,11 @@
 from guidance.llms import Transformers
-from transformers import LlamaForCausalLM
+from transformers import AutoModelForCausalLM
 from huggingface_hub import snapshot_download
+from auto_gptq import exllama_set_max_input_length
 import os
 import glob
-import sys
+import torch
 from transformers import AutoTokenizer
-from auto_gptq import AutoGPTQForCausalLM
 
 from model_roles import (
     Dolphin_Role,
@@ -17,17 +17,15 @@ from model_roles import (
 
 selected_role = None
 
-
 def get_role():
     return selected_role
-    # return Vicuna1_3Role
-    # return Llama2ChatRole
-    # return Llama2GuanacoRole
-    # return Llama2UncensoredChatRole
 
 
-class LLaMAAutoGPTQ(Transformers):
-    """A HuggingFace transformers version of the LLaMA language model with Guidance support."""
+class LLaMATransformersAutoGPTQ(Transformers):
+    """
+    A HuggingFace transformers version of the LLaMA language model with Guidance
+    support, powered by AutoGPTQ.
+    """
 
     llm_name: str = "llama"
 
@@ -75,34 +73,19 @@ class LLaMAAutoGPTQ(Transformers):
 
         print(f"found model with basename {model_basename} in dir {model_dir}")
 
-        use_triton = True  # testing new autogptq
-        low_vram_mode = "--low-vram" in sys.argv
-
-        if low_vram_mode:
-            print("low vram mode enabled")
-
         tokenizer = AutoTokenizer.from_pretrained(model, use_fast=True)
 
         final_path = f"{model_dir}"
 
-        model = AutoGPTQForCausalLM.from_quantized(
-            # model,
+        model = AutoModelForCausalLM.from_pretrained(
             final_path,
-            model_basename=model_basename,
-            use_safetensors=True,
-            inject_fused_mlp=low_vram_mode is False,
-            inject_fused_attention=use_triton,
-            device="cuda:0",
-            use_triton=use_triton,
-            warmup_triton=use_triton,
-            quantize_config=None,
+            torch_dtype=torch.float16,
+            device_map="auto"
         )
 
-        # model._update_model_kwargs_for_generation = (
-        #     LlamaForCausalLM._update_model_kwargs_for_generation
-        # )
-
-        model.config.max_seq_len = 4096  # this is the one
+        # need to verify if this is still needed for llama 2:
+        exllama_set_max_input_length(model, 4096)
+        model.config.max_seq_len = 4096
 
         return super()._model_and_tokenizer(model, tokenizer, **kwargs)
 

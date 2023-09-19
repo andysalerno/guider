@@ -37,6 +37,25 @@ class Vicuna1_3Role:
         else:
             return ""
 
+class Airoboros_Role:
+    @staticmethod
+    def role_start(role):
+        if role == "user":
+            return "\nUSER: "
+        elif role == "assistant":
+            return "\nASSISTANT: "
+        else:
+            return ""
+
+    @staticmethod
+    def role_end(role):
+        if role == "user":
+            return ""
+        elif role == "assistant":
+            return "</s>"
+        else:
+            return ""
+
 
 class Dolphin_Role:
     @staticmethod
@@ -164,5 +183,8 @@ def get_role_from_model_name(model: str):
     elif "dolphin" in model.lower():
         print("found an orca model")
         return Dolphin_Role
+    elif "airoboros" in model.lower():
+        print("found an airoboros model")
+        return Airoboros_Role
     else:
         raise Exception(f"no matching model found for {model}")

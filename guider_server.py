@@ -47,6 +47,10 @@ def setup_models(model_name: str):
         from llama_gptq import LLaMAGPTQ
 
         model = LLaMAGPTQ(model_name)
+    elif MODEL_EXECUTOR == "transformersgptq":
+        from llama_transformers_autogptq import LLaMATransformersAutoGPTQ
+
+        model = LLaMATransformersAutoGPTQ(model_name)
     elif MODEL_EXECUTOR == "exllama":
         from llama_exllama import ExLLaMA
 
