@@ -1,29 +1,34 @@
 torch
 sentence-transformers
-toml
+# toml
 # git+https://github.com/microsoft/guidance
 # git+https://github.com/huggingface/transformers
 # guidance==0.0.64
 
-git+https://github.com/huggingface/accelerate.git@main
-optimum
-tqdm
+# git+https://github.com/huggingface/accelerate.git@main
+# optimum
+# tqdm
 
 guidance==0.0.64
 
-https://github.com/PanQiWei/AutoGPTQ/releases/download/v0.4.2/auto_gptq-0.4.2+cu118-cp310-cp310-linux_x86_64.whl
+# https://github.com/PanQiWei/AutoGPTQ/releases/download/v0.4.2/auto_gptq-0.4.2+cu118-cp310-cp310-linux_x86_64.whl
 # auto-gptq[triton]
 # git+https://github.com/PanQiWei/AutoGPTQ
 
+# ctransformers
 transformers
-ctransformers
 bitsandbytes
 huggingface_hub
-xformers==0.0.20
+xformers==0.0.21
 
 # llama-cpp-python
 # https://github.com/jllllll/llama-cpp-python-cuBLAS-wheels/releases/download/wheels/llama_cpp_python-0.1.78+cu122-cp310-cp310-linux_x86_64.whl
-https://github.com/jllllll/llama-cpp-python-cuBLAS-wheels/releases/download/AVX/llama_cpp_python-0.2.6+cu121-cp310-cp310-manylinux_2_31_x86_64.whl
+# https://github.com/jllllll/llama-cpp-python-cuBLAS-wheels/releases/download/AVX/llama_cpp_python-0.2.6+cu121-cp310-cp310-manylinux_2_31_x86_64.whl
+
+# awk
+# autoawq
+# cchardet
+# vllm
 
 # for memory:
 chromadb
@@ -32,3 +37,11 @@ chromadb
 # safetensors==0.3.1
 # sentencepiece>=0.1.97
 # ninja==1.11.1
+
+# llama-cpp-guidance
+llama-cpp-guidance
+# requires:
+# CMAKE_ARGS="-DLLAMA_CUBLAS=on" pip install llama-cpp-python --force-reinstall --upgrade --no-cache-dir
+# git+https://github.com/abetlen/llama-cpp-python
+# conda install -c conda-forge gxx=12.3.0
+# conda install -c conda-forge gcc=12.3.0

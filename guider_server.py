@@ -12,6 +12,7 @@ from llama_attn_hijack import hijack_llama_attention_xformers
 if Path("./guidance").exists():
     sys.path.insert(0, str(Path("guidance")))
     print("Adding ./guidance to import tree.")
+
 import guidance
 
 MODEL_EXECUTOR: str = None
@@ -64,17 +65,25 @@ def setup_models(model_name: str):
 
         model = LLaMATransformer(model_name)
     elif MODEL_EXECUTOR == "llamacpp":
-        from llama_cpp_hf import LlamacppHF
+        # from llama_cpp_hf import LlamacppHF
+        # model = LlamacppHF(model_name)
+        from llama_cpp_guidance.llm import LlamaCpp
 
-        model = LlamacppHF(model_name)
+        model = LlamaCpp(model_path=f'models/{model_name}', n_gpu_layers=9999, n_ctx=4096)
+    elif MODEL_EXECUTOR == "awq":
+        from llama_awk import LLaMAAwk
 
-    global memory
-    memory = Memory(embedding_model)
+        model = LLaMAAwk(model_name)
+    elif MODEL_EXECUTOR == "openai":
+        model = guidance.llms.OpenAI(endpoint='http://localhost:8002', model='TheBloke/Llama-2-7b-Chat-AWQ')
+
+    # global memory
+    # memory = Memory(embedding_model)
     print("Memory initialized.")
 
     guidance.llms.Transformers.cache.clear()
     guidance.llm = model
-    print(f"Token healing enabled: {guidance.llm.token_healing}")
+    # print(f"Token healing enabled: {guidance.llm.token_healing}")
 
 
 class MyHandler(BaseHTTPRequestHandler):
@@ -259,9 +268,10 @@ def run(server_class=HTTPServer, handler_class=MyHandler):
 
     setup_models(model_name)
 
-    server_address = ("0.0.0.0", 8000)
+    port = 8000
+    server_address = ("0.0.0.0", port)
     httpd = server_class(server_address, handler_class)
-    print("Starting httpd...\n")
+    print(f"Starting httpd. Listening on port {port}...\n")
     httpd.serve_forever()
 
 

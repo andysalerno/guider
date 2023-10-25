@@ -2,10 +2,10 @@ from guidance.llms import Transformers
 from huggingface_hub import snapshot_download
 import os
 import glob
-import sys
 from transformers import AutoTokenizer
-from auto_gptq import AutoGPTQForCausalLM
 from model_roles import get_role_from_model_name
+from awq import AutoAWQForCausalLM
+from pathlib import Path
 
 
 selected_role = None
@@ -15,19 +15,19 @@ def get_role():
     return selected_role
 
 
-class LLaMAAutoGPTQ(Transformers):
-    """A HuggingFace transformers version of the LLaMA language model with Guidance support."""
+class LlamaOpenAIAPI(Transformers):
+    """An AWK version of the LLaMA language model with Guidance support."""
 
     llm_name: str = "llama"
 
     def _model_and_tokenizer(self, model, tokenizer, **kwargs):
         assert tokenizer is None, "We will not respect any tokenizer from the caller."
-        assert isinstance(model, str), "Model should be a str with LLaMAAutoGPTQ"
+        assert isinstance(model, str), "Model should be a str"
 
         global selected_role
         selected_role = get_role_from_model_name(model)
 
-        print(f"Initializing LLaMAAutoGPTQ with model {model}")
+        print(f"Initializing LLaMAAwk with model {model}")
 
         branch = None
         if ":" in model:
@@ -40,41 +40,20 @@ class LLaMAAutoGPTQ(Transformers):
         model_dir = f"{models_dir}/{name_suffix}"
 
         print(f'invoking: {model}, {branch}, {model_dir}')
+        Path(model_dir).mkdir(parents=True, exist_ok=True)
         snapshot_download(repo_id=model, revision=branch, local_dir=model_dir)
 
         model_basename = find_safetensor_filename(model_dir)
-        model_basename = model_basename.split(".safetensors")[0]
 
         print(f"found model with basename {model_basename} in dir {model_dir}")
 
-        use_triton = True  # testing new autogptq
-        low_vram_mode = "--low-vram" in sys.argv
-
-        if low_vram_mode:
-            print("low vram mode enabled")
-
         tokenizer = AutoTokenizer.from_pretrained(model, use_fast=True)
 
-        final_path = f"{model_dir}"
+        model = AutoAWQForCausalLM.from_quantized(model_dir, model_basename, fuse_layers=True)
 
-        model = AutoGPTQForCausalLM.from_quantized(
-            # model,
-            final_path,
-            model_basename=model_basename,
-            use_safetensors=True,
-            inject_fused_mlp=low_vram_mode is False,
-            inject_fused_attention=use_triton,
-            device="cuda:0",
-            use_triton=use_triton,
-            warmup_triton=use_triton,
-            quantize_config=None,
-        )
+        model.device = "0"
 
-        # model._update_model_kwargs_for_generation = (
-        #     LlamaForCausalLM._update_model_kwargs_for_generation
-        # )
-
-        model.config.max_seq_len = 4096  # this is the one
+        # model.config.max_seq_len = 4096  # this is the one
 
         return super()._model_and_tokenizer(model, tokenizer, **kwargs)
 
