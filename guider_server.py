@@ -16,6 +16,7 @@ if Path("./guidance").exists():
 import guidance
 
 MODEL_EXECUTOR: str = None
+model_name: str = None
 
 
 # EMBEDDING_MODEL_NAME = "all-mpnet-base-v2"
@@ -102,6 +103,20 @@ class MyHandler(BaseHTTPRequestHandler):
 
         if self.path.startswith("/memory"):
             self.handle_memory_get()
+        elif self.path.startswith("/model"):
+            self.handle_model_get()
+
+    def handle_model_get(self):
+        print('model get requested')
+
+        # Send response headers
+        self.send_response(200)
+        self.send_header("Content-type", "application/json")
+        self.end_headers()
+
+        result_json = json.dumps({ 'model_name': model_name }).encode("utf-8")
+
+        self.wfile.write(result_json)
 
     def handle_memory_get(self):
         print("memory get requested")
@@ -211,45 +226,48 @@ class MyHandler(BaseHTTPRequestHandler):
         template: str = data["template"]
         parameters: dict = data["parameters"]
 
-        g = guidance(template, stream=True, caching=False)
+        # g = guidance(template, stream=True, caching=False)
+        g = guidance(template, stream=False)
 
         output_skips = {}
 
         skip_text = 0
 
         print("streaming model output...")
-        for output in g(**parameters):
-            print("\n...streaming chunk...")
+        # for output in g(**parameters):
+        output = g(**parameters)
+        print("\n...streaming chunk...")
 
-            filtered_variables = dict()
+        filtered_variables = dict()
 
-            for key, val in output.variables().items():
-                if (
-                    isinstance(val, str)
-                    and key not in parameters.keys()
-                    and key != "llm"
-                    and key != "@raw_prefix"
-                ):
-                    skip = output_skips.get(key, 0)
-                    filtered_variables[key] = val[skip:]
-                    output_skips[key] = len(val)
+        for key, val in output.variables().items():
+            if (
+                isinstance(val, str)
+                and key not in parameters.keys()
+                and key != "llm"
+                and key != "@raw_prefix"
+            ):
+                filtered_variables[key] = val
+                # skip = output_skips.get(key, 0)
+                # filtered_variables[key] = val[skip:]
+                # output_skips[key] = len(val)
 
-            print(f"variables: {filtered_variables}")
+        print(f"variables: {filtered_variables}")
 
-            response = {
-                "text": output.text[skip_text:],
-                "variables": filtered_variables,
-            }
+        response = {
+            "text": output.text[skip_text:],
+            "variables": filtered_variables,
+        }
 
-            print(f"response:\n{response}")
+        print(f"response:\n{response}")
 
-            skip_text = len(output.text)
+        skip_text = len(output.text)
 
-            response_str = f"data: {json.dumps(response).rstrip()}\n\n"
-            sys.stdout.flush()
-            self.wfile.write("event: streamtext\n".encode("utf-8"))
-            self.wfile.write(response_str.encode("utf-8"))
-            self.wfile.flush()
+        response_str = f"data: {json.dumps(response).rstrip()}\n\n"
+        sys.stdout.flush()
+        self.wfile.write("event: streamtext\n".encode("utf-8"))
+        self.wfile.write(response_str.encode("utf-8"))
+        self.wfile.flush()
 
         print("done getting output from model.")
 
@@ -262,6 +280,7 @@ def run(server_class=HTTPServer, handler_class=MyHandler):
             "Expected to be invoked with two arguments: model_name and executor"
         )
 
+    global model_name
     model_name = sys.argv[1]
 
     MODEL_EXECUTOR = sys.argv[2]
