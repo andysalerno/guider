@@ -285,7 +285,9 @@ def run(server_class=HTTPServer, handler_class=MyHandler):
 
     MODEL_EXECUTOR = sys.argv[2]
 
-    setup_models(model_name)
+    # setup_models(model_name)
+
+    embedding_model.encode('blank text to trigger deployment to GPU')
 
     port = 8000
     server_address = ("0.0.0.0", port)
