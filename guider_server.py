@@ -57,6 +57,10 @@ class MyHandler(BaseHTTPRequestHandler):
 
         print(f"got results: {results}")
 
+        response = json.dumps(results)
+
+        self.wfile.write(response.encode("utf-8"))
+
     def handle_memory_post(self):
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
