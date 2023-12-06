@@ -1,4 +1,6 @@
 import json
+import uuid
+from urllib.parse import urlparse, parse_qs
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from sentence_transformers import SentenceTransformer
 import chromadb
@@ -39,13 +41,17 @@ class MyHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "application/json")
         self.end_headers()
 
-        content_length = int(self.headers["Content-Length"])
-        body = json.loads(self.rfile.read(content_length).decode("utf-8"))
+        parsed_url = urlparse(self.path)
+        query_params = parse_qs(parsed_url.query)
 
-        input = body["input"]
-        num_results = int(body["num_results"])
+        print(f"params: {query_params}")
 
-        embeddings = embedding_model.encode(input).tolist()[0]
+        input = query_params["input"][0]
+        num_results = int(query_params["num_results"][0])
+
+        print(f"querying {num_results} for input {input}")
+
+        embeddings = embedding_model.encode(input).tolist()
 
         results = collection.query(query_embeddings=embeddings, n_results=num_results)
 
@@ -61,12 +67,12 @@ class MyHandler(BaseHTTPRequestHandler):
 
         document = body["document"]
 
-        embeddings = embedding_model.encode(document).tolist()[0]
+        embeddings = embedding_model.encode(document).tolist()
+
+        uuid_str = str(uuid.uuid4())
 
         collection.add(
-            embeddings=embeddings,
-            documents=document,
-            metadatas=None,
+            embeddings=embeddings, documents=document, metadatas=None, ids=uuid_str
         )
 
     def handle_embeddings(self):
