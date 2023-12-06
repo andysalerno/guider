@@ -1,10 +1,7 @@
-import sys
 import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from sentence_transformers import SentenceTransformer
-
-MODEL_EXECUTOR: str = None
-model_name: str = None
+import chromadb
 
 
 # EMBEDDING_MODEL_NAME = "all-mpnet-base-v2"
@@ -12,15 +9,19 @@ model_name: str = None
 # EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
 EMBEDDING_MODEL_NAME = "intfloat/e5-small-v2"
 
-print('initializing embedding transformer...')
+print("initializing embedding transformer...")
 embedding_model = SentenceTransformer(EMBEDDING_MODEL_NAME)
-print('done.')
+print("done.")
 
-memory = None
+chroma_client = chromadb.PersistentClient(path="./chroma")
+collection = chroma_client.create_collection(
+    name="my_collection", get_or_create=True, embedding_function=None
+)
+
 
 class MyHandler(BaseHTTPRequestHandler):
     def do_POST(self):
-        print(f"POST {self.path}")
+        print(f"POST {self.path}", flush=True)
 
         if self.path == "/embeddings":
             self.handle_embeddings()
@@ -28,12 +29,45 @@ class MyHandler(BaseHTTPRequestHandler):
             self.handle_memory_post()
 
     def do_GET(self):
-        print(f"GET {self.path}")
+        print(f"GET {self.path}", flush=True)
 
         if self.path.startswith("/memory"):
             self.handle_memory_get()
 
+    def handle_memory_get(self):
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
 
+        content_length = int(self.headers["Content-Length"])
+        body = json.loads(self.rfile.read(content_length).decode("utf-8"))
+
+        input = body["input"]
+        num_results = int(body["num_results"])
+
+        embeddings = embedding_model.encode(input).tolist()[0]
+
+        results = collection.query(query_embeddings=embeddings, n_results=num_results)
+
+        print(f"got results: {results}")
+
+    def handle_memory_post(self):
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+
+        content_length = int(self.headers["Content-Length"])
+        body = json.loads(self.rfile.read(content_length).decode("utf-8"))
+
+        document = body["document"]
+
+        embeddings = embedding_model.encode(document).tolist()[0]
+
+        collection.add(
+            embeddings=embeddings,
+            documents=document,
+            metadatas=None,
+        )
 
     def handle_embeddings(self):
         print("embeddings requested")
@@ -71,24 +105,10 @@ class MyHandler(BaseHTTPRequestHandler):
         self.wfile.write(response.encode("utf-8"))
 
 
-
 def run(server_class=HTTPServer, handler_class=MyHandler):
-    print('starting up...', flush=True)
-    global MODEL_EXECUTOR
-
-    if len(sys.argv) < 3:
-        raise Exception(
-            "Expected to be invoked with two arguments: model_name and executor"
-        )
-
-    global model_name
-    model_name = sys.argv[1]
-
-    MODEL_EXECUTOR = sys.argv[2]
-
-    print('warming up embedding model...', flush=True)
-    embedding_model.encode('blank text to trigger deployment to GPU')
-    print('done.', flush=True)
+    print("warming up embedding model...", flush=True)
+    embedding_model.encode("blank text to trigger deployment to GPU")
+    print("done.", flush=True)
 
     port = 8000
     server_address = ("0.0.0.0", port)
