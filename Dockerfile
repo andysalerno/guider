@@ -11,7 +11,6 @@ ARG TARGETPLATFORM
 ENV PATH /opt/conda/bin:$PATH
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-        build-essential \
         ca-certificates \
         ccache \
         curl \
@@ -38,7 +37,7 @@ RUN case ${TARGETPLATFORM} in \
     esac && \
     /opt/conda/bin/conda clean -ya
 
-RUN pip install sentence-transformers
+RUN pip install sentence-transformers chromadb
 
 COPY guider_server.py .
 
